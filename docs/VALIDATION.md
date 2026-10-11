@@ -4,6 +4,15 @@ This document distinguishes reported R10 hardware results from reproducible
 checks supplied with this repository. Neither establishes universal hardware
 compatibility or application accuracy.
 
+## Error-path corrections
+
+The review of initial public revision `493d8b7d` accepted four findings and added
+46 production-function fault scenarios, allocator variants and six mutation
+checks. See [findings, corrections and limits](ERROR_PATH_REVIEW.md). The fixed
+module passed a separate Linux 6.12.112 compilation/modpost check; the full
+OpenWrt, APK, firmware and GNU runtime results below remain historical evidence
+for the initial source and are not rerun or relabeled as fixed-source results.
+
 ## R10 validation background
 
 * Linux 6.12.112, RKNPU 0.9.8, R10 three-core integration on an R6S.
@@ -23,8 +32,8 @@ compatibility or application accuracy.
 ## Source and build verification
 
 * Patch 0001 applies without fuzz to the SHA256-pinned Rockchip archive and
-  reproduces the published driver. Functional source is retained from R10;
-  added public modification comments are identified separately by hash.
+  reproduces the current driver, including the error-path corrections.
+  The inventory retains original R10 hashes and identifies subsequent changes.
 * Patch 0002 applies without fuzz to the pinned Linux 6.12.112 IOMMU file and
   reproduces the recorded R10 IOMMU source.
 * Patch 0003 applies to Linux Kconfig/Makefile and the R6S board context after
@@ -33,8 +42,8 @@ compatibility or application accuracy.
 * `tests/run.py` passes 67 synthetic range checks both normally and with
   AddressSanitizer/UndefinedBehaviorSanitizer. It uses the actual production
   range header and vendor GPL UAPI structs with a small host type/include shim.
-  It does not exercise MMIO, real allocation lifetimes, kernel scheduling or
-  NPU hardware.
+  The separate error-path suite models selected allocation and IRQ lifetimes
+  with host stubs; neither suite executes kernel scheduling or NPU hardware.
 * On 2026-10-11, both GNU source preparations completed on a separate native
   AArch64 Linux host with a case-sensitive volume. All pinned archive, patch
   and changed-source hashes passed, including all 8 glibc and 11 libstdc++

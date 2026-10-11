@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0
+/* R6S error-path fixes; modified 2026-10-11. See docs/ERROR_PATH_REVIEW.md. */
 /*
  * Copyright (C) Rockchip Electronics Co.Ltd
  * Author: Felix Zeng <felix.zeng@rock-chips.com>
@@ -71,8 +72,10 @@ int rknpu_fence_get_fd(struct rknpu_job *job)
 		return fence_fd;
 
 	sync_file = sync_file_create(job->fence);
-	if (!sync_file)
+	if (!sync_file) {
+		put_unused_fd(fence_fd);
 		return -ENOMEM;
+	}
 
 	fd_install(fence_fd, sync_file->file);
 

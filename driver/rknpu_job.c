@@ -227,11 +227,16 @@ static void rknpu_job_free(struct rknpu_job *job)
 	kfree(job);
 }
 
-static int rknpu_job_cleanup(struct rknpu_job *job)
+static void rknpu_job_get(struct rknpu_job *job)
 {
-	rknpu_job_free(job);
+	refcount_inc(&job->refcount);
+}
 
-	return 0;
+static void rknpu_job_put(struct rknpu_job *job)
+{
+	/* GEM release may sleep; the last reader can be a hard IRQ. */
+	if (refcount_dec_and_test(&job->refcount))
+		schedule_work(&job->cleanup_work);
 }
 
 static void rknpu_job_cleanup_work(struct work_struct *work)
@@ -239,22 +244,36 @@ static void rknpu_job_cleanup_work(struct work_struct *work)
 	struct rknpu_job *job =
 		container_of(work, struct rknpu_job, cleanup_work);
 
-	rknpu_job_cleanup(job);
+	rknpu_job_free(job);
 }
 
 static inline struct rknpu_job *rknpu_job_alloc(struct rknpu_device *rknpu_dev,
 						struct rknpu_submit *args)
 {
-	struct rknpu_job *job = NULL;
-	int i = 0;
+	struct rknpu_job *job;
+	int i;
 #ifdef CONFIG_ROCKCHIP_RKNPU_DRM_GEM
-	struct rknpu_gem_object *task_obj = NULL;
+	struct rknpu_gem_object *task_obj;
 #endif
 
 	job = kzalloc(sizeof(*job), GFP_KERNEL);
 	if (!job)
 		return NULL;
 
+	/* IRQ readers may outlive the ioctl, including a synchronous abort. */
+	job->args = kmemdup(args, sizeof(*args), GFP_KERNEL);
+	if (!job->args) {
+		kfree(job);
+		return NULL;
+	}
+	job->args_owner = true;
+	refcount_set(&job->refcount, 1); /* submitter */
+	spin_lock_init(&job->job_lock);
+	INIT_WORK(&job->cleanup_work, rknpu_job_cleanup_work);
+	for (i = 0; i < RKNPU_MAX_CORES; i++) {
+		INIT_LIST_HEAD(&job->head[i]);
+		atomic_set(&job->submit_count[i], 0);
+	}
 	job->timestamp = ktime_get();
 	job->rknpu_dev = rknpu_dev;
 	job->use_core_num = (args->core_mask & RKNPU_CORE0_MASK) +
@@ -263,30 +282,11 @@ static inline struct rknpu_job *rknpu_job_alloc(struct rknpu_device *rknpu_dev,
 	atomic_set(&job->run_count, job->use_core_num);
 	atomic_set(&job->interrupt_count, job->use_core_num);
 	job->iommu_domain_id = args->iommu_domain_id;
-	for (i = 0; i < rknpu_dev->config->num_irqs; i++)
-		atomic_set(&job->submit_count[i], 0);
 #ifdef CONFIG_ROCKCHIP_RKNPU_DRM_GEM
 	task_obj = (struct rknpu_gem_object *)(uintptr_t)args->task_obj_addr;
 	if (task_obj)
 		rknpu_gem_object_get(&task_obj->base);
 #endif
-
-	if (!(args->flags & RKNPU_JOB_NONBLOCK)) {
-		job->args = args;
-		job->args_owner = false;
-		return job;
-	}
-
-	job->args = kzalloc(sizeof(*args), GFP_KERNEL);
-	if (!job->args) {
-		kfree(job);
-		return NULL;
-	}
-	*job->args = *args;
-	job->args_owner = true;
-
-	INIT_WORK(&job->cleanup_work, rknpu_job_cleanup_work);
-
 	return job;
 }
 
@@ -296,14 +296,12 @@ static inline int rknpu_job_wait(struct rknpu_job *job)
 	struct rknpu_submit *args = job->args;
 	struct rknpu_task *last_task = NULL;
 	struct rknpu_subcore_data *subcore_data = NULL;
-	struct rknpu_job *entry, *q;
 	void __iomem *rknpu_core_base = NULL;
 	int core_index = rknpu_wait_core_index(job->args->core_mask);
 	unsigned long flags;
 	int wait_count = 0;
 	bool continue_wait = false;
 	int ret = -EINVAL;
-	int i = 0;
 
 	subcore_data = &rknpu_dev->subcore_datas[core_index];
 
@@ -324,34 +322,21 @@ static inline int rknpu_job_wait(struct rknpu_job *job)
 			continue_wait =
 				job->hw_commit_time == 0 ?
 					true :
-					(elapse_time_us < args->timeout * 1000);
+					(elapse_time_us < (s64)args->timeout * 1000);
 			spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
 			LOG_ERROR(
-				"job: %p, mask: %#x, job iommu domain id: %d, dev iommu domain id: %d, wait_count: %d, continue wait: %d, commit elapse time: %lldus, wait time: %lldus, timeout: %uus\n",
+				"job: %p, mask: %#x, job iommu domain id: %d, dev iommu domain id: %d, wait_count: %d, continue wait: %d, commit elapse time: %lldus, wait time: %lldus, timeout: %ums\n",
 				job, args->core_mask, job->iommu_domain_id,
 				rknpu_dev->iommu_domain_id, wait_count,
 				continue_wait,
 				(job->hw_commit_time == 0 ? 0 : elapse_time_us),
 				ktime_us_delta(ktime_get(), job->timestamp),
-				args->timeout * 1000);
+				args->timeout);
 		}
 	} while (ret == 0 && continue_wait);
 
 	last_task = job->last_task;
 	if (!last_task) {
-		spin_lock_irqsave(&rknpu_dev->irq_lock, flags);
-		for (i = 0; i < job->use_core_num; i++) {
-			subcore_data = &rknpu_dev->subcore_datas[i];
-			list_for_each_entry_safe(
-				entry, q, &subcore_data->todo_list, head[i]) {
-				if (entry == job) {
-					list_del(&job->head[i]);
-					break;
-				}
-			}
-		}
-		spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
-
 		LOG_ERROR("job commit failed\n");
 		return ret < 0 ? ret : -EINVAL;
 	}
@@ -379,6 +364,9 @@ static inline int rknpu_job_wait(struct rknpu_job *job)
 
 	if (!(job->flags & RKNPU_JOB_DONE))
 		return -EINVAL;
+
+	if (job->ret)
+		return job->ret;
 
 	args->task_counter = args->task_number;
 	args->hw_elapse_time = job->hw_elapse_time;
@@ -594,33 +582,56 @@ static void rknpu_job_commit(struct rknpu_job *job)
 
 static void rknpu_job_next(struct rknpu_device *rknpu_dev, int core_index)
 {
-	struct rknpu_job *job = NULL;
-	struct rknpu_subcore_data *subcore_data = NULL;
+	struct rknpu_job *job;
+	struct rknpu_subcore_data *subcore_data;
 	unsigned long flags;
 
-	if (rknpu_dev->soft_reseting)
-		return;
-
 	subcore_data = &rknpu_dev->subcore_datas[core_index];
-
 	spin_lock_irqsave(&rknpu_dev->irq_lock, flags);
-
-	if (subcore_data->job || list_empty(&subcore_data->todo_list)) {
+	if (rknpu_dev->soft_reseting || subcore_data->job ||
+	    list_empty(&subcore_data->todo_list)) {
 		spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
 		return;
 	}
-
 	job = list_first_entry(&subcore_data->todo_list, struct rknpu_job,
 			       head[core_index]);
-
+	rknpu_job_get(job);
 	list_del_init(&job->head[core_index]);
 	subcore_data->job = job;
 	job->hw_commit_time = ktime_get();
 	job->hw_recoder_time = job->hw_commit_time;
 	spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
 
-	if (atomic_dec_and_test(&job->run_count))
+	spin_lock_irqsave(&job->job_lock, flags);
+	if (!(job->flags & RKNPU_JOB_DONE) &&
+	    atomic_dec_and_test(&job->run_count))
 		rknpu_job_commit(job);
+	spin_unlock_irqrestore(&job->job_lock, flags);
+	rknpu_job_put(job);
+}
+
+/* Called with job_lock held. Release scheduler/IOMMU ownership exactly once. */
+static void rknpu_job_finish(struct rknpu_job *job, int ret)
+{
+	struct rknpu_device *dev = job->rknpu_dev;
+	int i;
+
+	if (job->flags & RKNPU_JOB_DONE)
+		return;
+	job->ret = ret;
+	job->flags |= RKNPU_JOB_DONE;
+	if (job->fence) {
+		if (ret)
+			dma_fence_set_error(job->fence, ret);
+		dma_fence_signal(job->fence);
+	}
+	for (i = 0; i < dev->config->num_irqs; i++)
+		wake_up(&dev->subcore_datas[i].job_done_wq);
+	if (job->scheduled) {
+		job->scheduled = false;
+		rknpu_iommu_domain_put(dev);
+		rknpu_job_put(job);
+	}
 }
 
 static void rknpu_job_done(struct rknpu_job *job, int ret, int core_index)
@@ -653,27 +664,8 @@ static void rknpu_job_done(struct rknpu_job *job, int ret, int core_index)
 	subcore_data->timer.busy_time += ktime_sub(now, job->hw_recoder_time);
 	spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
 
-	if (atomic_dec_and_test(&job->interrupt_count)) {
-		int use_core_num = job->use_core_num;
-
-		rknpu_iommu_domain_put(rknpu_dev);
-
-		job->flags |= RKNPU_JOB_DONE;
-		job->ret = ret;
-
-		if (job->fence)
-			dma_fence_signal(job->fence);
-
-		if (job->flags & RKNPU_JOB_ASYNC)
-			schedule_work(&job->cleanup_work);
-
-		if (use_core_num > 1)
-			wake_up(&(&rknpu_dev->subcore_datas[0])->job_done_wq);
-		else
-			wake_up(&subcore_data->job_done_wq);
-	}
-
-	rknpu_job_next(rknpu_dev, core_index);
+	if (atomic_dec_and_test(&job->interrupt_count))
+		rknpu_job_finish(job, ret);
 }
 
 static int rknpu_schedule_core_index(struct rknpu_device *rknpu_dev)
@@ -724,10 +716,13 @@ static void rknpu_job_schedule(struct rknpu_job *job)
 			if (count <= 0 || queued < 0 || count > S64_MAX - queued) {
 				job->ret = -EOVERFLOW;
 				spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
+				rknpu_iommu_domain_put(rknpu_dev);
 				return;
 			}
 		}
 	}
+	job->scheduled = true;
+	rknpu_job_get(job); /* scheduler: all active/queued core references */
 	for (i = 0; i < rknpu_dev->config->num_irqs; i++) {
 		if (job->args->core_mask & rknpu_core_mask(i)) {
 			subcore_data = &rknpu_dev->subcore_datas[i];
@@ -743,61 +738,71 @@ static void rknpu_job_schedule(struct rknpu_job *job)
 	}
 }
 
-static void rknpu_job_abort(struct rknpu_job *job)
+static void rknpu_job_abort(struct rknpu_job *job, int ret)
 {
-	struct rknpu_device *rknpu_dev = job->rknpu_dev;
-	struct rknpu_subcore_data *subcore_data = NULL;
-	unsigned long flags;
-	int i = 0;
+	struct rknpu_device *dev = job->rknpu_dev;
+	unsigned long flags, irq_flags;
+	int i;
 
-	rknpu_iommu_domain_put(rknpu_dev);
-
-	msleep(100);
-
-	spin_lock_irqsave(&rknpu_dev->irq_lock, flags);
-	for (i = 0; i < rknpu_dev->config->num_irqs; i++) {
-		if (job->args->core_mask & rknpu_core_mask(i)) {
-			subcore_data = &rknpu_dev->subcore_datas[i];
-			if (job == subcore_data->job && !job->irq_entry[i]) {
-				if (rknpu_dev->rk3588_core0_banks)
-					r6s_busy_end(&rknpu_dev->r6s_busy[i], ktime_get_ns(), true);
-				subcore_data->job = NULL;
-				subcore_data->task_num -=
-					rknpu_get_task_number(job, i);
-			}
-		}
+	spin_lock_irqsave(&job->job_lock, flags);
+	if (job->flags & RKNPU_JOB_DONE) {
+		spin_unlock_irqrestore(&job->job_lock, flags);
+		return;
 	}
-	spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
+	job->flags |= RKNPU_JOB_DETACHED;
+	spin_lock_irqsave(&dev->irq_lock, irq_flags);
+	for (i = 0; i < dev->config->num_irqs; i++) {
+		struct rknpu_subcore_data *core = &dev->subcore_datas[i];
+		bool attached = false;
 
-	if (job->ret == -ETIMEDOUT) {
+		/* An IRQ having entered is not proof that it completed the job. */
+		if (core->job == job) {
+			core->job = NULL;
+			attached = true;
+			if (dev->rk3588_core0_banks)
+				r6s_busy_end(&dev->r6s_busy[i], ktime_get_ns(), true);
+		}
+		if (!list_empty(&job->head[i])) {
+			list_del_init(&job->head[i]);
+			attached = true;
+		}
+		if (attached)
+			core->task_num -= rknpu_get_task_number(job, i);
+	}
+	spin_unlock_irqrestore(&dev->irq_lock, irq_flags);
+	rknpu_job_finish(job, ret);
+	spin_unlock_irqrestore(&job->job_lock, flags);
+
+	/* The caller still owns a reference, as do IRQ readers already in flight. */
+	if (ret == -ETIMEDOUT) {
 		LOG_ERROR("job timeout, flags: %#x:\n", job->flags);
-		for (i = 0; i < rknpu_dev->config->num_irqs; i++) {
+		for (i = 0; i < dev->config->num_irqs; i++) {
 			if (job->args->core_mask & rknpu_core_mask(i)) {
 				void __iomem *rknpu_core_base =
-					rknpu_dev->base[i];
+					dev->base[i];
 				LOG_ERROR(
 					"\tcore %d irq status: %#x, raw status: %#x, require mask: %#x, task counter: %#x, elapsed time: %lldus\n",
 					i, REG_READ(RKNPU_OFFSET_INT_STATUS),
 					REG_READ(RKNPU_OFFSET_INT_RAW_STATUS),
 					job->int_mask[i],
 					(REG_READ(
-						 rknpu_dev->config
+						 dev->config
 							 ->pc_task_status_offset) &
-					 rknpu_dev->config->pc_task_number_mask),
+					 dev->config->pc_task_number_mask),
 					ktime_us_delta(ktime_get(),
 						       job->timestamp));
 			}
 		}
 		r6s_diag_job_snapshot(job, 2);
-		rknpu_soft_reset(rknpu_dev);
+		rknpu_soft_reset(dev);
 	} else {
 		LOG_ERROR(
 			"job abort, flags: %#x, ret: %d, elapsed time: %lldus\n",
 			job->flags, job->ret,
 			ktime_us_delta(ktime_get(), job->timestamp));
 	}
-
-	rknpu_job_cleanup(job);
+	for (i = 0; i < dev->config->num_irqs; i++)
+		rknpu_job_next(dev, i);
 }
 
 static inline uint32_t rknpu_fuzz_status(uint32_t status)
@@ -851,10 +856,14 @@ static inline irqreturn_t rknpu_irq_handler(int irq, void *data, int core_index)
 		rknpu_job_next(rknpu_dev, core_index);
 		return IRQ_HANDLED;
 	}
-	job->irq_entry[core_index] = true;
+	rknpu_job_get(job);
 	spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
 
-
+	spin_lock_irqsave(&job->job_lock, flags);
+	if (job->flags & RKNPU_JOB_DONE) {
+		REG_WRITE(RKNPU_INT_CLEAR, RKNPU_OFFSET_INT_CLEAR);
+		goto out;
+	}
 	job->int_status[core_index] = status;
 
 	if (rknpu_fuzz_status(status) != job->int_mask[core_index]) {
@@ -865,13 +874,16 @@ static inline irqreturn_t rknpu_irq_handler(int irq, void *data, int core_index)
 			(REG_READ(rknpu_dev->config->pc_task_status_offset) &
 			 rknpu_dev->config->pc_task_number_mask));
 		REG_WRITE(RKNPU_INT_CLEAR, RKNPU_OFFSET_INT_CLEAR);
-		return IRQ_HANDLED;
+		goto out;
 	}
 
 	REG_WRITE(RKNPU_INT_CLEAR, RKNPU_OFFSET_INT_CLEAR);
 
 	rknpu_job_done(job, 0, core_index);
-
+out:
+	spin_unlock_irqrestore(&job->job_lock, flags);
+	rknpu_job_put(job);
+	rknpu_job_next(rknpu_dev, core_index);
 	return IRQ_HANDLED;
 }
 
@@ -893,46 +905,27 @@ irqreturn_t rknpu_core2_irq_handler(int irq, void *data)
 static void rknpu_job_timeout_clean(struct rknpu_device *rknpu_dev,
 				    int core_mask)
 {
-	struct rknpu_job *job = NULL;
+	struct rknpu_job *job;
 	unsigned long flags;
-	struct rknpu_subcore_data *subcore_data = NULL;
-	int i = 0;
+	int i;
 
 	for (i = 0; i < rknpu_dev->config->num_irqs; i++) {
-		if (core_mask & rknpu_core_mask(i)) {
-			subcore_data = &rknpu_dev->subcore_datas[i];
-			job = subcore_data->job;
-			if (job &&
-			    ktime_us_delta(ktime_get(), job->timestamp) >=
-				    job->args->timeout) {
-				rknpu_soft_reset(rknpu_dev);
-
-				spin_lock_irqsave(&rknpu_dev->irq_lock, flags);
-				subcore_data->job = NULL;
-				spin_unlock_irqrestore(&rknpu_dev->irq_lock,
-						       flags);
-
-				do {
-					schedule_work(&job->cleanup_work);
-
-					spin_lock_irqsave(&rknpu_dev->irq_lock,
-							  flags);
-
-					if (!list_empty(
-						    &subcore_data->todo_list)) {
-						job = list_first_entry(
-							&subcore_data->todo_list,
-							struct rknpu_job,
-							head[i]);
-						list_del_init(&job->head[i]);
-					} else {
-						job = NULL;
-					}
-
-					spin_unlock_irqrestore(
-						&rknpu_dev->irq_lock, flags);
-				} while (job);
-			}
+		if (!(core_mask & rknpu_core_mask(i)))
+			continue;
+		spin_lock_irqsave(&rknpu_dev->irq_lock, flags);
+		job = rknpu_dev->subcore_datas[i].job;
+		/* timeout is ms; widen before multiplying to cover the full u32 ABI.
+		 * A synchronous submitter owns its own wait/abort path. */
+		if (job && (job->flags & RKNPU_JOB_ASYNC) &&
+		    ktime_us_delta(ktime_get(), job->timestamp) >=
+			    (s64)job->args->timeout * 1000)
+			rknpu_job_get(job);
+		else
+			job = NULL;
+		spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
+		if (job) {
+			rknpu_job_abort(job, -ETIMEDOUT);
+			rknpu_job_put(job);
 		}
 	}
 }
@@ -962,47 +955,51 @@ static int rknpu_submit(struct rknpu_device *rknpu_dev,
 	if (rknpu_dev->rk3588_core0_banks) {
 		struct r6s_task_range range;
 		int core;
-		if (!args->core_mask) { rknpu_job_free(job); return -EINVAL; }
+		if (!args->core_mask) { rknpu_job_put(job); return -EINVAL; }
 		for (core = 0; core < rknpu_dev->config->num_irqs; core++) {
 			if (!(args->core_mask & rknpu_core_mask(core))) continue;
 			ret = r6s_rk3588_job_task_range(job, core, &range);
-			if (ret) { rknpu_job_free(job); return ret; }
+			if (ret) { rknpu_job_put(job); return ret; }
 		}
 	}
 	if (args->flags & RKNPU_JOB_FENCE_IN) {
 #ifdef CONFIG_ROCKCHIP_RKNPU_FENCE
 		struct dma_fence *in_fence;
+		long wait_ret = 1;
 
 		in_fence = sync_file_get_fence(args->fence_fd);
 
 		if (!in_fence) {
 			LOG_ERROR("invalid fence in fd, fd: %d\n",
 				  args->fence_fd);
+			rknpu_job_put(job);
 			return -EINVAL;
 		}
 		args->fence_fd = -1;
+		job->args->fence_fd = -1;
 
 		/*
 		 * Wait if the fence is from a foreign context, or if the fence
 		 * array contains any fence from a foreign context.
 		 */
-		ret = 0;
 		if (!dma_fence_match_context(in_fence,
 					     rknpu_dev->fence_ctx->context))
-			ret = dma_fence_wait_timeout(in_fence, true,
-						     args->timeout);
+			wait_ret = dma_fence_wait_timeout(in_fence, true,
+						     msecs_to_jiffies(args->timeout));
 		dma_fence_put(in_fence);
-		if (ret < 0) {
+		if (wait_ret <= 0) {
+			ret = wait_ret ? wait_ret : -ETIMEDOUT;
 			if (ret != -ERESTARTSYS)
 				LOG_ERROR("Error (%d) waiting for fence!\n",
 					  ret);
 
+			rknpu_job_put(job);
 			return ret;
 		}
 #else
 		LOG_ERROR(
 			"failed to use rknpu fence, please enable rknpu fence config!\n");
-		rknpu_job_free(job);
+		rknpu_job_put(job);
 		return -EINVAL;
 #endif
 	}
@@ -1011,15 +1008,20 @@ static int rknpu_submit(struct rknpu_device *rknpu_dev,
 #ifdef CONFIG_ROCKCHIP_RKNPU_FENCE
 		ret = rknpu_fence_alloc(job);
 		if (ret) {
-			rknpu_job_free(job);
+			rknpu_job_put(job);
 			return ret;
 		}
 		job->args->fence_fd = rknpu_fence_get_fd(job);
 		args->fence_fd = job->args->fence_fd;
+		if (args->fence_fd < 0) {
+			ret = args->fence_fd;
+			rknpu_job_put(job);
+			return ret;
+		}
 #else
 		LOG_ERROR(
 			"failed to use rknpu fence, please enable rknpu fence config!\n");
-		rknpu_job_free(job);
+		rknpu_job_put(job);
 		return -EINVAL;
 #endif
 	}
@@ -1028,25 +1030,18 @@ static int rknpu_submit(struct rknpu_device *rknpu_dev,
 		job->flags |= RKNPU_JOB_ASYNC;
 		rknpu_job_timeout_clean(rknpu_dev, job->args->core_mask);
 		rknpu_job_schedule(job);
-		ret = job->ret;
-		if (ret) {
-			rknpu_job_abort(job);
-			return ret;
-		}
+		ret = READ_ONCE(job->ret);
 	} else {
 		rknpu_job_schedule(job);
-		if ((args->flags & RKNPU_JOB_PC) &&
-		    !(rknpu_dev->rk3588_core0_banks && job->ret))
-			job->ret = rknpu_job_wait(job);
-
-		args->task_counter = job->args->task_counter;
 		ret = job->ret;
-		if (!ret)
-			rknpu_job_cleanup(job);
-		else
-			rknpu_job_abort(job);
+		if ((args->flags & RKNPU_JOB_PC) && !ret)
+			ret = rknpu_job_wait(job);
+		args->task_counter = job->args->task_counter;
+		args->hw_elapse_time = job->args->hw_elapse_time;
 	}
-
+	if (ret)
+		rknpu_job_abort(job, ret);
+	rknpu_job_put(job);
 	return ret;
 }
 

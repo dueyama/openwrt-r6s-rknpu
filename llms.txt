@@ -6,14 +6,16 @@ The project was motivated by exploring Kitsune / KitNET-inspired network anomaly
 detection on a router's NPU. The application implementation, models, proprietary
 RKNN SDK and firmware binaries are outside this source repository.
 
-Isolated OpenWrt and GNU runtime builds and synthetic tests passed on 2026-10-11.
-Earlier hardware bring-up is recorded separately. Strict numerical comparison
+The initial source passed isolated OpenWrt and GNU runtime builds on 2026-10-11.
+Later error-path corrections passed host fault-injection tests and a separate
+module build. Earlier hardware bring-up is recorded separately. Strict numerical comparison
 has not passed; detection accuracy, NPU speedup, cold boot, service activation
 and a complete endurance run are not certified. This is an experimental port,
 not a reproduced Kitsune evaluation or a complete intrusion-detection product.
 
 ## Overview and evidence
 
+- [Error-path review](docs/ERROR_PATH_REVIEW.md): Four accepted findings, fixes, regression tests and remaining kernel/device limits.
 - [README](README.md): Motivation, scope, hardware and software baseline.
 - [Validation](docs/VALIDATION.md): Recorded hardware evidence, new build checks and remaining limits.
 - [Dated results](verification/results-2026-10-11.json): Machine-readable build checks and artifact hashes.

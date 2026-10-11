@@ -1,0 +1,90 @@
+{
+  "reviewed_baseline": "493d8b7d1f733bee42d029ff601831a367eaf8f3",
+  "date": "2026-10-11",
+  "status": "Host and module validation; hardware not tested",
+  "findings": {
+    "irq_abort_lifetime": "accepted",
+    "async_timeout_units": "accepted",
+    "dma_fallback_pairing": "accepted",
+    "input_fence_error_leaks": "accepted"
+  },
+  "vendor_archive_sha256": "188306a3eba7ca48c186fe2a39acf232dec8536484581e54e9b96c3f65677eba",
+  "patterns_present_in_pinned_vendor_source": true,
+  "driver_source_sha256": {
+    "rknpu_gem.c": "4624c8e161c98a30a923b143ee163fc1b8762189beb1da59c3b67e723d8304a5",
+    "rknpu_mainline_devfreq.c": "cc25de60374352ac585ebf8b5b127eea792a81b58868fa2e8f0828a3e9a99136",
+    "rknpu_drv.c": "e46070b74a6ef07cba60fb474ad9054c54bd4112abb3820a626fcf3b66ea7fcd",
+    "rknpu_debugger.c": "1f88acf9ff83432f30382451c59eb48f6052522f2346ccdd42337fc2d94af375",
+    "rknpu_job.c": "1749cfee81a75f8885b2a3fec6bec9e4234a7d6addeb69487d8a17ada64f24fe",
+    "rknpu_devfreq.c": "945715ab5c610d054414eb9ac98b41465cbbfbfa08f20d63f78872d1833c20ab",
+    "rknpu_mainline_iommu.c": "e7d017f889cc1821ff8a4038fe314cf776ba5788ff03a017caf88a84e16c0372",
+    "rknpu_fence.c": "0c9e102595ea3be289e839190a6314755746491641cdd5ef79744c79a5a6c4ef",
+    "rknpu_reset.c": "1b55c46462a11d5a0c41ac0bb04e7d3fb6778dc0d22d1d5f3a87b53078600baf",
+    "rknpu_iommu.c": "70c8040b179f9b72c3aa431108e41aa0b38d34491fddd686a9610266056ed50b",
+    "Makefile": "9f4dae36b35698a18fc83a67ff6ae28ca0c869c243508540ab22b244fcba3ee8",
+    "rknpu_mem.c": "4b683b171b285f795d2686794479a04bdb5e99b8af09b3de1634d66ede6a4116",
+    "rknpu_mm.c": "00e0f31a4516204c732087c6644357c6256e6986680dde8ce53a5159be214b50",
+    "Kconfig": "04a28695ae0744a88d18eea4c5147e691a93099c07e36311181c1fab71d6f536",
+    "include/rknpu_drv.h": "c775f8c776a52fa60af090d2f72b15fa421957ddc208f0945d52ac3fc95c1595",
+    "include/r6s_diag_flags.h": "143cc3e0f0a249ca4b2ae4cfaf4466662183e4defa1caa06aa18c4c2e00838ea",
+    "include/rknpu_job.h": "6886b1bc6c9152c2e5781494ab03221ac02123afddcd0901fabc5a4f46a1ce72",
+    "include/rknpu_mem.h": "699dfb6abbfc407fd6398cb439e066954eefc1010f6ffe90f8fc3b71e9594ae0",
+    "include/rknpu_gem.h": "2b1505cc42102937859580ff7776f50a881417e7b1409debf469169491120bfa",
+    "include/r6s_task_range.h": "7f2d4b8cd626ffbe39fef2b21fccefbb84bdc11f8fbe35a53ac57ec3e7067018",
+    "include/rknpu_devfreq.h": "4f61b69e34dfddd1bd324d9ffc299960a8b5e0ab91e2b547d871bc0f99c53518",
+    "include/rknpu_iommu.h": "0b1a250a31477f3ecfcce79d16622710bd0f29b64d4b7551cfbf5f0c6d241549",
+    "include/rknpu_fence.h": "c24e6758fc00b99d81a252bd95c5d80c4ebc1f5f86e6a74df37776d2c80498aa",
+    "include/rknpu_reset.h": "f3c211db59c23556db44ef7fc3dabee23616eae7bf71fe9f5870cf9755eba9b3",
+    "include/r6s_mmio.h": "ddc93b40586b6d71cc7a0861973c3e3693be76a8a0b3c13abd5dbf9033a2abe5",
+    "include/rknpu_mm.h": "81b7b374043812128940fac58e81da0dd171c5c75cd76fc0a8ed5313d6cafb97",
+    "include/rknpu_ioctl.h": "fa6455fb13141d1a3a3050b659855837237a92fa043a3091a020ca90f8f5017a",
+    "include/r6s_busy.h": "3f7c19326e95dd6150519c4c96dafa95bf3a61d8c683d3f4ddac5ad73c92043d",
+    "include/r6s_diag.h": "f911fb4f542ca4e66310c16ed28baf95b52ac4457a4581eb5b748549e1543bb5",
+    "include/rknpu_debugger.h": "7834989555d11333559098a5f2e3fa07063908d109ddb8aa62c0f619337071f6"
+  },
+  "patch_0001_sha256": "7bed7b558c00c4b68a9e9bfb17a4cc375027bb4ea8a8c8db20283d71bc90b376",
+  "patch_reconstructs_current_driver_without_fuzz": true,
+  "tests": {
+    "range_cases": 67,
+    "error_path_scenarios": 46,
+    "allocation_configs": [
+      1,
+      0
+    ],
+    "modes": [
+      "normal",
+      "AddressSanitizer+UndefinedBehaviorSanitizer"
+    ],
+    "macos_compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+    "linux_compiler": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "linux_arch": "AArch64",
+    "mutation_checks": 6,
+    "mutants_compiled_then_failed_runtime_assertions": true,
+    "test_source_sha256": {
+      "tests/error_paths.c": "15b2e4d18afaeae344bd9956f2b5c5bfc10983fc5ca4a8cd39120a287a61c9ff",
+      "tests/error_paths.py": "54a3481b8c290b99dd894e81d3bb5482994eb5fa45b35973b79188553256f5a2",
+      "tests/error_paths_host.h": "304b0b0f7ef9da564f46245ea9512750f4da62c42ad37c0cd63a70daf9d49aa3",
+      "tests/run.py": "199e9236a23766a8890be3c2a2023271790b64b5030533cb63947437618bf90a",
+      "tests/task_range.c": "e3dd6012b8c389b3f173973c72434ad0541747d03509b98c5a9da5dd6ab14acd"
+    }
+  },
+  "module": {
+    "module_sha256": "02fdf09c434fdb2e8d157960bf006e6b23359f1da8bc35ce4f6562d3fcea598f",
+    "elf_machine": "AArch64",
+    "vermagic": "6.12.112 SMP mod_unload aarch64",
+    "undefined_symbols": 170,
+    "unresolved_symbols": [],
+    "module_compiler": "aarch64-openwrt-linux-musl-gcc (OpenWrt GCC 14.3.0 r0-66673aa) 14.3.0",
+    "bytes": 553096,
+    "kernel": "6.12.112",
+    "strict_compilation_modpost": true,
+    "kernel_baseline_read_only": true,
+    "kernel_baseline_hashes_unchanged": true
+  },
+  "limits": [
+    "Host service stubs and deterministic interleavings do not establish full SMP or kernel KASAN/KCSAN/lockdep correctness.",
+    "Real DMA mapping/cache coherency, reset failure or bypass, late IRQ attribution, PM and module unload require kernel/device testing.",
+    "Synchronous kernel wait and real MMIO/reset implementation are not executed by the host fault harness.",
+    "No fixed-source firmware or APK build and no device installation/inference/cold-boot/endurance test. Earlier build records remain baseline results."
+  ]
+}

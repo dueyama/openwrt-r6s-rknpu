@@ -11,6 +11,7 @@
 #include <linux/spinlock.h>
 #include <linux/dma-fence.h>
 #include <linux/irq.h>
+#include <linux/refcount.h>
 
 #include <drm/drm_device.h>
 
@@ -31,7 +32,11 @@ struct rknpu_job {
 	struct rknpu_device *rknpu_dev;
 	struct list_head head[RKNPU_MAX_CORES];
 	struct work_struct cleanup_work;
-	bool irq_entry[RKNPU_MAX_CORES];
+	/* Submitter, scheduler and transient IRQ/queue readers own references.
+	 * Lock order: job_lock, then rknpu_dev->irq_lock. */
+	refcount_t refcount;
+	spinlock_t job_lock;
+	bool scheduled;
 	unsigned int flags;
 	int ret;
 	struct rknpu_submit *args;

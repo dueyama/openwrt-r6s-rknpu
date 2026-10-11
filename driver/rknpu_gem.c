@@ -226,6 +226,13 @@ static int rknpu_gem_alloc_buf(struct rknpu_gem_object *rknpu_obj)
 				rknpu_obj->size);
 			rknpu_obj->dma_attrs &= ~DMA_ATTR_FORCE_CONTIGUOUS;
 			rknpu_obj->flags |= RKNPU_MEM_NON_CONTIGUOUS;
+#if RKNPU_GEM_ALLOC_FROM_PAGES
+			/* Match the NON_CONTIGUOUS free/mmap/sync paths. The
+			 * DMA attempt allocated only the temporary page array. */
+			rknpu_gem_free_page(rknpu_obj->pages);
+			rknpu_obj->pages = NULL;
+			return rknpu_gem_get_pages(rknpu_obj);
+#else
 			rknpu_obj->cookie = dma_alloc_attrs(
 				drm->dev, rknpu_obj->size, &rknpu_obj->dma_addr,
 				gfp_mask, rknpu_obj->dma_attrs);
@@ -236,6 +243,7 @@ static int rknpu_gem_alloc_buf(struct rknpu_gem_object *rknpu_obj)
 					rknpu_obj->size);
 				goto err_free;
 			}
+#endif
 		} else {
 			LOG_DEV_ERROR(drm->dev,
 				      "failed to allocate %lu buffer.\n",

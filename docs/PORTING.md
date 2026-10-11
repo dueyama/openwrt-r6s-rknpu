@@ -31,12 +31,14 @@ Linux 6.12.112/RK3588S environment.
   diagnostics are adapted in the accompanying driver delta. Dormant BSP source
   files remain for correspondence; the Makefile selects the mainline files.
 
-R10 source extraction was prepared on 2026-10-11. Public source changes relative
-to the recorded R10 input are limited to modification notices and a corrected
-DTS status comment. Functional code and DTS properties are preserved. Each
-file's original and published hashes are in `provenance/r10-source-files.json`.
-The R10 OpenWrt package builds successfully and has no automatic module-load
-entry. Installation and boot behavior of the generated package remain untested.
+The initial source extraction preserved R10 functional code and DTS properties.
+Subsequent job-lifetime, timeout, DMA fallback and fence error-path fixes are
+described in [the error-path review](ERROR_PATH_REVIEW.md). Original R10 and
+current source hashes remain in `provenance/r10-source-files.json`. The initial
+revision 10 OpenWrt package built successfully; revision 11 includes the fixes.
+The corrected driver passed a separate module build, but a revision 11 APK and
+firmware image have not been rebuilt. No automatic module-load entry is added.
+Installation and boot behavior remain untested.
 
 This is a downstream, experimental integration. The private DT compatible has
 not been represented as an accepted upstream binding, and schema/upstream

@@ -33,3 +33,6 @@ typedef uint32_t u32; typedef uint64_t u64;
                         "-I" + str(tmp), "-I" + str(root / "driver/include"),
                         str(root / "tests/task_range.c"), "-o", str(exe)], check=True)
         subprocess.run([str(exe)], check=True)
+
+# Exercise the actual production error-path functions with injected failures.
+subprocess.run([sys.executable, str(root / "tests/error_paths.py")], check=True)

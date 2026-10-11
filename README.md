@@ -17,7 +17,8 @@ developed for that exploration. The application implementation is outside its
 scope; no reproduction of the paper's results, detection accuracy, or performance
 gain from NPU acceleration is claimed here.
 
-This repository packages the R10 port. Hardware bring-up and three-core job
+This repository packages the R10 port with subsequent
+[job, DMA and fence error-path corrections](docs/ERROR_PATH_REVIEW.md). Hardware bring-up and three-core job
 execution have been reported on an R6S. Strict numerical comparison has not
 passed; FP16 exact equivalence and application detection accuracy remain
 unverified. Cold boot, automatic service activation and long-duration stability
@@ -49,7 +50,7 @@ repository and do not replace the component source notices or validation record.
 | `patches/` | Exact deltas from pinned Rockchip/Linux sources and OpenWrt integration |
 | `openwrt/` | Explicit-activation kernel package definition |
 | `runtime/` | Optional glibc/libstdc++ source pins, patches, and isolated build recipes |
-| `tests/` | Synthetic host tests of production task-range predicates |
+| `tests/` | Production task-range tests and error-path fault injection |
 | `verification/` | Isolated Linux container and minimal OpenWrt build configuration |
 | `provenance/` | Upstream pins, hashes, and per-file R10 source correspondence |
 

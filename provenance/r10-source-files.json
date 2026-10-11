@@ -112,11 +112,11 @@
     "upstream_sha256": "d97090ef93d81c2a1d6960688bf031d6bdbdc8bfc1b3a67a6284994cd3f603e6"
   },
   "driver/include/rknpu_job.h": {
-    "bytes": 2413,
+    "bytes": 2596,
     "modified_from_upstream": true,
     "original_r10_sha256": "3c6d996ae941dc679ad9cb11d9db6bc4269bb7fe4b97a8e698d348cf55f3456a",
-    "public_change": "modification notice only",
-    "sha256": "1691676668ea27e5a11581e58ce9ceb2422723f82adba865ae233f11e7499453",
+    "public_change": "job reference count and lifetime lock; remove sticky IRQ-entry flag",
+    "sha256": "6886b1bc6c9152c2e5781494ab03221ac02123afddcd0901fabc5a4f46a1ce72",
     "upstream_sha256": "b2f26fb6d85e6f981c3d2f4b08470a86f254077479b6cd7fa02c060ae1495f09"
   },
   "driver/include/rknpu_mem.h": {
@@ -168,19 +168,19 @@
     "upstream_sha256": "2765f98d6ee62e532bfca5ce79267e6c9b5ee0a31a08000e1800c4863743f4bf"
   },
   "driver/rknpu_fence.c": {
-    "bytes": 1662,
-    "modified_from_upstream": false,
+    "bytes": 1774,
+    "modified_from_upstream": true,
     "original_r10_sha256": "75a1dc2a8efc1ca9c8fd01b3b6db1c617369cf72f1b028b8419a12646ade0522",
-    "public_change": "none",
-    "sha256": "75a1dc2a8efc1ca9c8fd01b3b6db1c617369cf72f1b028b8419a12646ade0522",
+    "public_change": "return reserved output-fence descriptor on sync-file allocation failure",
+    "sha256": "0c9e102595ea3be289e839190a6314755746491641cdd5ef79744c79a5a6c4ef",
     "upstream_sha256": "75a1dc2a8efc1ca9c8fd01b3b6db1c617369cf72f1b028b8419a12646ade0522"
   },
   "driver/rknpu_gem.c": {
-    "bytes": 39805,
+    "bytes": 40080,
     "modified_from_upstream": true,
     "original_r10_sha256": "4d1d37868319878c21d649cab9a10fdec65bb8c81fdb4692053b91a90bbbf0e2",
-    "public_change": "modification notice only",
-    "sha256": "1e880c8be69e8f8c8b1eedf934a4ea1080ca6a4d28c04ff90feca19aae04a5a9",
+    "public_change": "match non-contiguous fallback allocation with page-backed release and mapping",
+    "sha256": "4624c8e161c98a30a923b143ee163fc1b8762189beb1da59c3b67e723d8304a5",
     "upstream_sha256": "f959d3ae8fae3e0e886868871d22f1ee91f0d98996451ddfcb0849ce638de055"
   },
   "driver/rknpu_iommu.c": {
@@ -192,11 +192,11 @@
     "upstream_sha256": "70c8040b179f9b72c3aa431108e41aa0b38d34491fddd686a9610266056ed50b"
   },
   "driver/rknpu_job.c": {
-    "bytes": 34873,
+    "bytes": 35669,
     "modified_from_upstream": true,
     "original_r10_sha256": "12bf8b73fc9b78c19b4ee53662a080a29fea98bf1baae0a98f9dd47aa096c33d",
-    "public_change": "modification notice only",
-    "sha256": "c62dfe28b66b24015fd3ac524dc6dcab359707fbc2a5f721d33f0b9ee0650520",
+    "public_change": "reference-counted job lifetime, serialized abort/IRQ completion, millisecond timeouts and fence error cleanup",
+    "sha256": "1749cfee81a75f8885b2a3fec6bec9e4234a7d6addeb69487d8a17ada64f24fe",
     "upstream_sha256": "66ec047312b15b02f38a8f6e679daf24ea948a69c24f7099e8fdec41100cf4bf"
   },
   "driver/rknpu_mainline_devfreq.c": {
