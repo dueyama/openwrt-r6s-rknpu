@@ -33,6 +33,7 @@
     {"@type": "CreativeWork", "name": "Verification results dated 2026-10-11", "url": "verification/results-2026-10-11.json"},
     {"@type": "CreativeWork", "name": "Source provenance", "url": "docs/PROVENANCE.md"},
     {"@type": "CreativeWork", "name": "Third-party notices", "url": "THIRD_PARTY_NOTICES.md"},
+    {"@type": "CreativeWork", "name": "Reset ordering and DMA32 review", "url": "docs/RESET_DMA32_REVIEW.md"},
     {"@type": "CreativeWork", "name": "Error-path review and regression coverage", "url": "docs/ERROR_PATH_REVIEW.md"},
     {"@type": "CreativeWork", "name": "Error-path verification record", "url": "verification/error-path-review-2026-10-11.json"}
   ]

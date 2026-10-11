@@ -381,7 +381,8 @@ static const struct drm_gem_object_funcs rknpu_gem_object_funcs = {
 #endif
 
 static struct rknpu_gem_object *rknpu_gem_init(struct drm_device *drm,
-					       unsigned long size)
+					       unsigned long size,
+					       unsigned int flags)
 {
 	struct rknpu_device *rknpu_dev = drm->dev_private;
 	struct rknpu_gem_object *rknpu_obj = NULL;
@@ -406,6 +407,8 @@ static struct rknpu_gem_object *rknpu_gem_init(struct drm_device *drm,
 	}
 
 	rknpu_obj->size = rknpu_obj->base.size;
+	/* shmem uses this GFP mask later, including the contiguous fallback. */
+	rknpu_obj->flags = flags;
 
 	gfp_mask = mapping_gfp_mask(obj->filp->f_mapping);
 
@@ -464,7 +467,7 @@ rknpu_gem_object_create(struct drm_device *drm, unsigned int flags,
 
 	remain_ddr_size = round_up(size, PAGE_SIZE);
 
-	rknpu_obj = rknpu_gem_init(drm, remain_ddr_size);
+	rknpu_obj = rknpu_gem_init(drm, remain_ddr_size, flags);
 	if (IS_ERR(rknpu_obj))
 		return rknpu_obj;
 
@@ -1206,7 +1209,7 @@ rknpu_gem_prime_import_sg_table(struct drm_device *dev,
 	int npages = 0;
 	int ret = -EINVAL;
 
-	rknpu_obj = rknpu_gem_init(dev, attach->dmabuf->size);
+	rknpu_obj = rknpu_gem_init(dev, attach->dmabuf->size, 0);
 	if (IS_ERR(rknpu_obj)) {
 		ret = PTR_ERR(rknpu_obj);
 		return ERR_PTR(ret);

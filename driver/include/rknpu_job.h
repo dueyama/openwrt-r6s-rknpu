@@ -33,7 +33,8 @@ struct rknpu_job {
 	struct list_head head[RKNPU_MAX_CORES];
 	struct work_struct cleanup_work;
 	/* Submitter, scheduler and transient IRQ/queue readers own references.
-	 * Lock order: job_lock, then rknpu_dev->irq_lock. */
+	 * Lock order: reset_lock (process recovery/scheduling), dispatch_lock,
+	 * job_lock, irq_lock. Dispatch and completion hold dispatch_lock. */
 	refcount_t refcount;
 	spinlock_t job_lock;
 	bool scheduled;

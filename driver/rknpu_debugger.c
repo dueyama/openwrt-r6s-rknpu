@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0
+/* R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md. */
 /*
  * Copyright (C) Rockchip Electronics Co.Ltd
  * Author: Felix Zeng <felix.zeng@rock-chips.com>
@@ -283,6 +284,7 @@ static ssize_t rknpu_reset_set(struct file *file, const char __user *ubuf,
 	struct rknpu_device *rknpu_dev =
 		container_of(debugger, struct rknpu_device, debugger);
 	char buf[8];
+	int ret;
 
 	if (len > sizeof(buf) - 1)
 		return -EINVAL;
@@ -291,9 +293,11 @@ static ssize_t rknpu_reset_set(struct file *file, const char __user *ubuf,
 	buf[len - 1] = '\0';
 
 	if (strcmp(buf, "1") == 0 &&
-	    atomic_read(&rknpu_dev->power_refcount) > 0)
-		rknpu_soft_reset(rknpu_dev);
-	else if (strcmp(buf, "on") == 0)
+	    atomic_read(&rknpu_dev->power_refcount) > 0) {
+		ret = rknpu_soft_reset(rknpu_dev);
+		if (ret)
+			return ret;
+	} else if (strcmp(buf, "on") == 0)
 		rknpu_dev->bypass_soft_reset = 0;
 	else if (strcmp(buf, "off") == 0)
 		rknpu_dev->bypass_soft_reset = 1;

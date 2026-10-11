@@ -18,7 +18,8 @@ scope; no reproduction of the paper's results, detection accuracy, or performanc
 gain from NPU acceleration is claimed here.
 
 This repository packages the R10 port with subsequent
-[job, DMA and fence error-path corrections](docs/ERROR_PATH_REVIEW.md). Hardware bring-up and three-core job
+[job, DMA and fence corrections](docs/ERROR_PATH_REVIEW.md) and
+[reset ordering and DMA32 fixes](docs/RESET_DMA32_REVIEW.md). Hardware bring-up and three-core job
 execution have been reported on an R6S. Strict numerical comparison has not
 passed; FP16 exact equivalence and application detection accuracy remain
 unverified. Cold boot, automatic service activation and long-duration stability

@@ -1,5 +1,9 @@
 # Error-path review of the initial public revision
 
+A follow-up review found a reset-ordering regression and a DMA32 initialization
+issue in the resulting revision 11. See [the follow-up corrections and limits](RESET_DMA32_REVIEW.md).
+The counts and module result below describe the earlier review.
+
 Reviewed baseline: `493d8b7d1f733bee42d029ff601831a367eaf8f3`.
 The four findings below are accepted from source analysis. The corresponding
 patterns also occur in the SHA256-pinned Rockchip 0.9.8 archive identified in

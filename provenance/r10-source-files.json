@@ -72,11 +72,11 @@
     "upstream_sha256": "4f61b69e34dfddd1bd324d9ffc299960a8b5e0ab91e2b547d871bc0f99c53518"
   },
   "driver/include/rknpu_drv.h": {
-    "bytes": 5449,
+    "bytes": 5754,
     "modified_from_upstream": true,
     "original_r10_sha256": "2aa2c7bebdf62d0f7bb898e19437807e3f814222ce522a46c27839294af8983c",
-    "public_change": "modification notice only",
-    "sha256": "c775f8c776a52fa60af090d2f72b15fa421957ddc208f0945d52ac3fc95c1595",
+    "public_change": "Serialized device-wide reset recovery, dispatch/IRQ gate, safe completion ordering and reset failure quarantine; see docs/RESET_DMA32_REVIEW.md",
+    "sha256": "94a6425de96b64a070265c88a5e996721186eb17b7b91fd06fd12b2bf01cfc19",
     "upstream_sha256": "d18c8c38b2eca82a32c9012b74de0d5c276b2cd5a177f401ce8d0c6ed2db5820"
   },
   "driver/include/rknpu_fence.h": {
@@ -112,11 +112,11 @@
     "upstream_sha256": "d97090ef93d81c2a1d6960688bf031d6bdbdc8bfc1b3a67a6284994cd3f603e6"
   },
   "driver/include/rknpu_job.h": {
-    "bytes": 2596,
+    "bytes": 2685,
     "modified_from_upstream": true,
     "original_r10_sha256": "3c6d996ae941dc679ad9cb11d9db6bc4269bb7fe4b97a8e698d348cf55f3456a",
-    "public_change": "job reference count and lifetime lock; remove sticky IRQ-entry flag",
-    "sha256": "6886b1bc6c9152c2e5781494ab03221ac02123afddcd0901fabc5a4f46a1ce72",
+    "public_change": "Serialized device-wide reset recovery, dispatch/IRQ gate, safe completion ordering and reset failure quarantine; see docs/RESET_DMA32_REVIEW.md",
+    "sha256": "1483b1a3a39b94340cd8f54a0cea795ae4418636819b9f987374d0d63c98747c",
     "upstream_sha256": "b2f26fb6d85e6f981c3d2f4b08470a86f254077479b6cd7fa02c060ae1495f09"
   },
   "driver/include/rknpu_mem.h": {
@@ -136,19 +136,19 @@
     "upstream_sha256": "81b7b374043812128940fac58e81da0dd171c5c75cd76fc0a8ed5313d6cafb97"
   },
   "driver/include/rknpu_reset.h": {
-    "bytes": 369,
-    "modified_from_upstream": false,
+    "bytes": 573,
+    "modified_from_upstream": true,
     "original_r10_sha256": "f3c211db59c23556db44ef7fc3dabee23616eae7bf71fe9f5870cf9755eba9b3",
-    "public_change": "none",
-    "sha256": "f3c211db59c23556db44ef7fc3dabee23616eae7bf71fe9f5870cf9755eba9b3",
+    "public_change": "Serialized device-wide reset recovery, dispatch/IRQ gate, safe completion ordering and reset failure quarantine; see docs/RESET_DMA32_REVIEW.md",
+    "sha256": "813a598f4fae1864dbd1b98ba2aef74b21e93b559b51ec692fc92e099baabf31",
     "upstream_sha256": "f3c211db59c23556db44ef7fc3dabee23616eae7bf71fe9f5870cf9755eba9b3"
   },
   "driver/rknpu_debugger.c": {
-    "bytes": 15319,
-    "modified_from_upstream": false,
+    "bytes": 15434,
+    "modified_from_upstream": true,
     "original_r10_sha256": "1f88acf9ff83432f30382451c59eb48f6052522f2346ccdd42337fc2d94af375",
-    "public_change": "none",
-    "sha256": "1f88acf9ff83432f30382451c59eb48f6052522f2346ccdd42337fc2d94af375",
+    "public_change": "Serialized device-wide reset recovery, dispatch/IRQ gate, safe completion ordering and reset failure quarantine; see docs/RESET_DMA32_REVIEW.md",
+    "sha256": "5bc3b2895581594ca0de94ed0da4071217260f90761cc11e194751e9bbef254c",
     "upstream_sha256": "1f88acf9ff83432f30382451c59eb48f6052522f2346ccdd42337fc2d94af375"
   },
   "driver/rknpu_devfreq.c": {
@@ -160,11 +160,11 @@
     "upstream_sha256": "945715ab5c610d054414eb9ac98b41465cbbfbfa08f20d63f78872d1833c20ab"
   },
   "driver/rknpu_drv.c": {
-    "bytes": 45700,
+    "bytes": 45744,
     "modified_from_upstream": true,
     "original_r10_sha256": "5fd8feff03aee7291fdf25bc9d1f8698fc3ead1961a4355df0b7023bade3289e",
-    "public_change": "modification notice only",
-    "sha256": "e46070b74a6ef07cba60fb474ad9054c54bd4112abb3820a626fcf3b66ea7fcd",
+    "public_change": "Serialized device-wide reset recovery, dispatch/IRQ gate, safe completion ordering and reset failure quarantine; see docs/RESET_DMA32_REVIEW.md",
+    "sha256": "803aaed2ffc36eff27dd51bea3c2b567a782bb3d4499661dd8303ed47a0552a0",
     "upstream_sha256": "2765f98d6ee62e532bfca5ce79267e6c9b5ee0a31a08000e1800c4863743f4bf"
   },
   "driver/rknpu_fence.c": {
@@ -176,11 +176,11 @@
     "upstream_sha256": "75a1dc2a8efc1ca9c8fd01b3b6db1c617369cf72f1b028b8419a12646ade0522"
   },
   "driver/rknpu_gem.c": {
-    "bytes": 40080,
+    "bytes": 40223,
     "modified_from_upstream": true,
     "original_r10_sha256": "4d1d37868319878c21d649cab9a10fdec65bb8c81fdb4692053b91a90bbbf0e2",
-    "public_change": "match non-contiguous fallback allocation with page-backed release and mapping",
-    "sha256": "4624c8e161c98a30a923b143ee163fc1b8762189beb1da59c3b67e723d8304a5",
+    "public_change": "Paired DMA fallback plus request flags before shmem GFP initialization; see docs/ERROR_PATH_REVIEW.md and docs/RESET_DMA32_REVIEW.md",
+    "sha256": "97c86acb010c4f25a2bffef428caa90d7cb04c3509b0ffd996650adbfbfd9d94",
     "upstream_sha256": "f959d3ae8fae3e0e886868871d22f1ee91f0d98996451ddfcb0849ce638de055"
   },
   "driver/rknpu_iommu.c": {
@@ -192,11 +192,11 @@
     "upstream_sha256": "70c8040b179f9b72c3aa431108e41aa0b38d34491fddd686a9610266056ed50b"
   },
   "driver/rknpu_job.c": {
-    "bytes": 35669,
+    "bytes": 40202,
     "modified_from_upstream": true,
     "original_r10_sha256": "12bf8b73fc9b78c19b4ee53662a080a29fea98bf1baae0a98f9dd47aa096c33d",
-    "public_change": "reference-counted job lifetime, serialized abort/IRQ completion, millisecond timeouts and fence error cleanup",
-    "sha256": "1749cfee81a75f8885b2a3fec6bec9e4234a7d6addeb69487d8a17ada64f24fe",
+    "public_change": "Serialized device-wide reset recovery, dispatch/IRQ gate, safe completion ordering and reset failure quarantine; see docs/RESET_DMA32_REVIEW.md",
+    "sha256": "9e35d5cfdb533034130d473fbcbcaf88d4fefd34c5f5a0e64bf3f071c691fc1e",
     "upstream_sha256": "66ec047312b15b02f38a8f6e679daf24ea948a69c24f7099e8fdec41100cf4bf"
   },
   "driver/rknpu_mainline_devfreq.c": {
@@ -232,11 +232,11 @@
     "upstream_sha256": "00e0f31a4516204c732087c6644357c6256e6986680dde8ce53a5159be214b50"
   },
   "driver/rknpu_reset.c": {
-    "bytes": 3253,
-    "modified_from_upstream": false,
+    "bytes": 3688,
+    "modified_from_upstream": true,
     "original_r10_sha256": "1b55c46462a11d5a0c41ac0bb04e7d3fb6778dc0d22d1d5f3a87b53078600baf",
-    "public_change": "none",
-    "sha256": "1b55c46462a11d5a0c41ac0bb04e7d3fb6778dc0d22d1d5f3a87b53078600baf",
+    "public_change": "Serialized device-wide reset recovery, dispatch/IRQ gate, safe completion ordering and reset failure quarantine; see docs/RESET_DMA32_REVIEW.md",
+    "sha256": "0a5d6227bf96d9a1125ac0a702809c8eb437553c3802e1b8f987fd9adaa2cfc9",
     "upstream_sha256": "1b55c46462a11d5a0c41ac0bb04e7d3fb6778dc0d22d1d5f3a87b53078600baf"
   },
   "kernel/r6s-npu.dtsi": {

@@ -4,7 +4,17 @@ This document distinguishes reported R10 hardware results from reproducible
 checks supplied with this repository. Neither establishes universal hardware
 compatibility or application accuracy.
 
-## Error-path corrections
+## Reset and DMA32 corrections
+
+The follow-up review of `289960f` accepted both findings. Revision 12 has 70
+production-function error scenarios, both allocator configurations, twelve
+mutation checks and host-thread recovery races. The suite passed normally and
+under ASan/UBSan on macOS and AArch64 Linux; macOS host-thread tests also passed
+ThreadSanitizer. A separate final module build passed `-Werror` and modpost.
+See [recovery behavior, reset failure policy and limitations](RESET_DMA32_REVIEW.md).
+No revised firmware/APK or device qualification is implied.
+
+## Earlier error-path corrections
 
 The review of initial public revision `493d8b7d` accepted four findings and added
 46 production-function fault scenarios, allocator variants and six mutation

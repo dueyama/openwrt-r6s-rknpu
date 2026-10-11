@@ -129,6 +129,10 @@ struct rknpu_device {
 	atomic_t sequence;
 	spinlock_t lock;
 	spinlock_t irq_lock;
+	/* Serializes dispatch/IRQ MMIO with entry to device-wide recovery.
+	 * Lock order: reset_lock (process context), dispatch_lock, job_lock,
+	 * irq_lock. Never sleep while holding one of the spinlocks. */
+	spinlock_t dispatch_lock;
 	struct mutex power_lock;
 	struct mutex reset_lock;
 	struct mutex domain_lock;
@@ -154,6 +158,9 @@ struct rknpu_device {
 	int bypass_irq_handler;
 	int bypass_soft_reset;
 	bool soft_reseting;
+	bool reset_failed;
+	bool recovery_power_ref;
+	bool recovery_module_ref;
 	struct device *genpd_dev_npu0;
 	struct device *genpd_dev_npu1;
 	struct device *genpd_dev_npu2;

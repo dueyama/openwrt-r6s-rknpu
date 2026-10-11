@@ -1,0 +1,135 @@
+{
+  "reviewed_baseline": "289960f256a0e2e0b7fe5a2e4dbdee7d47a2d2c4",
+  "date": "2026-10-11",
+  "package_revision": 12,
+  "status": "Host fault and concurrency tests plus isolated module compilation; no device qualification",
+  "findings": {
+    "reset_before_completion_and_dispatch": {
+      "accepted": true,
+      "classification": "Regression in prior public error-path correction",
+      "baseline_host_observations": {
+        "resets_when_fence_signaled": 0,
+        "resets_when_successor_dispatched": 0,
+        "reset_count_after_abort": 1,
+        "successor_active_but_hardware_model_cleared": true
+      }
+    },
+    "dma32_initialization_before_page_fallback": {
+      "accepted": true,
+      "classification": "Earlier GEM initialization defect newly exercised by page-backed fallback",
+      "baseline_host_observations": {
+        "dma_bits": 40,
+        "iommu": true,
+        "dma32_request": true,
+        "contiguous_allocation_failed": true,
+        "page_allocator_gfp_dma32": false
+      }
+    }
+  },
+  "vendor_archive_sha256": "188306a3eba7ca48c186fe2a39acf232dec8536484581e54e9b96c3f65677eba",
+  "driver_source_sha256": {
+    "rknpu_gem.c": "97c86acb010c4f25a2bffef428caa90d7cb04c3509b0ffd996650adbfbfd9d94",
+    "rknpu_mainline_devfreq.c": "cc25de60374352ac585ebf8b5b127eea792a81b58868fa2e8f0828a3e9a99136",
+    "rknpu_drv.c": "803aaed2ffc36eff27dd51bea3c2b567a782bb3d4499661dd8303ed47a0552a0",
+    "rknpu_debugger.c": "5bc3b2895581594ca0de94ed0da4071217260f90761cc11e194751e9bbef254c",
+    "rknpu_job.c": "9e35d5cfdb533034130d473fbcbcaf88d4fefd34c5f5a0e64bf3f071c691fc1e",
+    "rknpu_devfreq.c": "945715ab5c610d054414eb9ac98b41465cbbfbfa08f20d63f78872d1833c20ab",
+    "rknpu_mainline_iommu.c": "e7d017f889cc1821ff8a4038fe314cf776ba5788ff03a017caf88a84e16c0372",
+    "rknpu_fence.c": "0c9e102595ea3be289e839190a6314755746491641cdd5ef79744c79a5a6c4ef",
+    "rknpu_reset.c": "0a5d6227bf96d9a1125ac0a702809c8eb437553c3802e1b8f987fd9adaa2cfc9",
+    "rknpu_iommu.c": "70c8040b179f9b72c3aa431108e41aa0b38d34491fddd686a9610266056ed50b",
+    "Makefile": "9f4dae36b35698a18fc83a67ff6ae28ca0c869c243508540ab22b244fcba3ee8",
+    "rknpu_mem.c": "4b683b171b285f795d2686794479a04bdb5e99b8af09b3de1634d66ede6a4116",
+    "rknpu_mm.c": "00e0f31a4516204c732087c6644357c6256e6986680dde8ce53a5159be214b50",
+    "Kconfig": "04a28695ae0744a88d18eea4c5147e691a93099c07e36311181c1fab71d6f536",
+    "include/rknpu_drv.h": "94a6425de96b64a070265c88a5e996721186eb17b7b91fd06fd12b2bf01cfc19",
+    "include/r6s_diag_flags.h": "143cc3e0f0a249ca4b2ae4cfaf4466662183e4defa1caa06aa18c4c2e00838ea",
+    "include/rknpu_job.h": "1483b1a3a39b94340cd8f54a0cea795ae4418636819b9f987374d0d63c98747c",
+    "include/rknpu_mem.h": "699dfb6abbfc407fd6398cb439e066954eefc1010f6ffe90f8fc3b71e9594ae0",
+    "include/rknpu_gem.h": "2b1505cc42102937859580ff7776f50a881417e7b1409debf469169491120bfa",
+    "include/r6s_task_range.h": "7f2d4b8cd626ffbe39fef2b21fccefbb84bdc11f8fbe35a53ac57ec3e7067018",
+    "include/rknpu_devfreq.h": "4f61b69e34dfddd1bd324d9ffc299960a8b5e0ab91e2b547d871bc0f99c53518",
+    "include/rknpu_iommu.h": "0b1a250a31477f3ecfcce79d16622710bd0f29b64d4b7551cfbf5f0c6d241549",
+    "include/rknpu_fence.h": "c24e6758fc00b99d81a252bd95c5d80c4ebc1f5f86e6a74df37776d2c80498aa",
+    "include/rknpu_reset.h": "813a598f4fae1864dbd1b98ba2aef74b21e93b559b51ec692fc92e099baabf31",
+    "include/r6s_mmio.h": "ddc93b40586b6d71cc7a0861973c3e3693be76a8a0b3c13abd5dbf9033a2abe5",
+    "include/rknpu_mm.h": "81b7b374043812128940fac58e81da0dd171c5c75cd76fc0a8ed5313d6cafb97",
+    "include/rknpu_ioctl.h": "fa6455fb13141d1a3a3050b659855837237a92fa043a3091a020ca90f8f5017a",
+    "include/r6s_busy.h": "3f7c19326e95dd6150519c4c96dafa95bf3a61d8c683d3f4ddac5ad73c92043d",
+    "include/r6s_diag.h": "f911fb4f542ca4e66310c16ed28baf95b52ac4457a4581eb5b748549e1543bb5",
+    "include/rknpu_debugger.h": "7834989555d11333559098a5f2e3fa07063908d109ddb8aa62c0f619337071f6"
+  },
+  "patch_0001_sha256": "cdccc125785b52c41ad225e9f844016a4bcf1d8ae330242256421e873d7036ca",
+  "patch_reconstructs_current_driver_without_fuzz": true,
+  "tests": {
+    "range_cases": 67,
+    "error_path_scenarios": 70,
+    "previous_scenarios": 46,
+    "added_scenarios": 24,
+    "allocation_configs": [
+      1,
+      0
+    ],
+    "modes": [
+      "normal",
+      "AddressSanitizer+UndefinedBehaviorSanitizer"
+    ],
+    "host_platforms": [
+      "macOS",
+      "AArch64 Linux"
+    ],
+    "macos_compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+    "linux_compiler": "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "thread_tests": {
+      "blocked_concurrent_submit_and_irq": true,
+      "irq_abort_races_per_run": 100,
+      "normal_and_asan_ubsan": [
+        "macOS",
+        "AArch64 Linux"
+      ],
+      "thread_sanitizer": [
+        "macOS"
+      ]
+    },
+    "reset_failure_variants": 12,
+    "mutation_checks": 12,
+    "mutants_compiled_then_failed_runtime_assertions": true,
+    "test_source_sha256": {
+      "tests/error_paths.c": "bc506dda9e6d1a85f10675658792742e956f3d8e42dc7388fba213bd7eefcc84",
+      "tests/error_paths.py": "1045df21cc6f4e326f3a375ec18eef377ae46b1027cc2f0972e321bc4567aea2",
+      "tests/error_paths_host.h": "018d457a041a48a73a149d5ae9bf70fcd358e696c7eaf1f9d90e6ee678909c2b",
+      "tests/recovery_threads.c": "e1b9a0a4d777e66a844ec3a64172bb13714ffe5d9a40f98783e1748d72aed922",
+      "tests/run.py": "199e9236a23766a8890be3c2a2023271790b64b5030533cb63947437618bf90a",
+      "tests/task_range.c": "e3dd6012b8c389b3f173973c72434ad0541747d03509b98c5a9da5dd6ab14acd"
+    }
+  },
+  "module": {
+    "module_sha256": "ac797f7603d61e597d4474b8e9a212822c6a4202f15d261fa5110b7e39ed5678",
+    "elf_machine": "AArch64",
+    "vermagic": "6.12.112 SMP mod_unload aarch64",
+    "undefined_symbols": 172,
+    "unresolved_symbols": [],
+    "module_compiler": "aarch64-openwrt-linux-musl-gcc (OpenWrt GCC 14.3.0 r0-66673aa) 14.3.0",
+    "bytes": 586352,
+    "kernel": "6.12.112",
+    "strict_compilation_modpost": true,
+    "kernel_baseline_read_only": true,
+    "kernel_baseline_hashes_unchanged": true
+  },
+  "reset_contract": {
+    "exclusive_reset_controls": true,
+    "assert_and_deassert_errors_checked": true,
+    "optional_status_readback_checked": true,
+    "pinned_rockchip_provider_has_status_callback": false,
+    "unsupported_optional_status_errno": "ENOTSUPP",
+    "bypass_and_missing_reset_controls": "recovery failure",
+    "source_reference": "https://docs.kernel.org/driver-api/reset.html#shared-and-exclusive-resets"
+  },
+  "limits": [
+    "Host locks and service models, including hardware-commit and timed-wait stubs, do not establish full kernel SMP, KASAN/KCSAN or lockdep correctness.",
+    "No real DMA destruction, high physical-page allocation or hardware stop/reset/recovery was reproduced.",
+    "Reset failure retains jobs, fences and recovery ownership; submitting ioctls can remain blocked until successful explicit reset or reboot.",
+    "PM, forced unbind/unload, suspend/shutdown, late hardware IRQ behavior, numerical equivalence, boot and endurance require separate qualification.",
+    "No revision 12 APK/firmware build or hardware deployment; historical verification records remain unchanged."
+  ]
+}

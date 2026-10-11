@@ -1341,6 +1341,7 @@ static int rknpu_probe(struct platform_device *pdev)
 
 	spin_lock_init(&rknpu_dev->lock);
 	spin_lock_init(&rknpu_dev->irq_lock);
+	spin_lock_init(&rknpu_dev->dispatch_lock);
 	mutex_init(&rknpu_dev->power_lock);
 	mutex_init(&rknpu_dev->reset_lock);
 	mutex_init(&rknpu_dev->domain_lock);

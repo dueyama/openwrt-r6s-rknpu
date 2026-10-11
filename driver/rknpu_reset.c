@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0
+/* R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md. */
 /*
  * Copyright (C) Rockchip Electronics Co.Ltd
  * Author: Felix Zeng <felix.zeng@rock-chips.com>
@@ -95,64 +96,63 @@ static int rknpu_reset_deassert(struct reset_control *rst)
 }
 #endif
 
-int rknpu_soft_reset(struct rknpu_device *rknpu_dev)
+/* Exclusive reset API success guarantees assertion/deassertion. Verify status
+ * too when the provider supports it; the pinned Rockchip provider has no
+ * .status method (-ENOTSUPP). Other status errors are recovery failures.
+ * The job layer owns reset_lock, dispatch gating, and completion notifications. */
+int rknpu_reset_hw(struct rknpu_device *rknpu_dev)
 {
 #ifndef FPGA_PLATFORM
-	struct iommu_domain *domain = NULL;
-	struct rknpu_subcore_data *subcore_data = NULL;
-	int ret = 0, i = 0;
+	struct iommu_domain *domain;
+	int ret = 0, err, i;
 
-	if (rknpu_dev->bypass_soft_reset) {
-		LOG_WARN("bypass soft reset\n");
-		return 0;
+	if (rknpu_dev->bypass_soft_reset || rknpu_dev->num_srsts <= 0)
+		return -EOPNOTSUPP;
+
+	for (i = 0; i < rknpu_dev->num_srsts; i++) {
+		err = rknpu_reset_assert(rknpu_dev->srsts[i]);
+		if (!err) {
+			err = reset_control_status(rknpu_dev->srsts[i]);
+			err = err == -ENOTSUPP || err > 0 ? 0 :
+			      (err < 0 ? err : -EIO);
+		}
+		if (err && !ret)
+			ret = err;
 	}
-
-	if (!mutex_trylock(&rknpu_dev->reset_lock))
-		return 0;
-
-	rknpu_dev->soft_reseting = true;
-
-	msleep(100);
-
-	for (i = 0; i < rknpu_dev->config->num_irqs; ++i) {
-		subcore_data = &rknpu_dev->subcore_datas[i];
-		wake_up(&subcore_data->job_done_wq);
-	}
-
-	LOG_INFO("soft reset, num: %d\n", rknpu_dev->num_srsts);
-
-	for (i = 0; i < rknpu_dev->num_srsts; ++i)
-		ret |= rknpu_reset_assert(rknpu_dev->srsts[i]);
-
-	udelay(10);
-
-	for (i = 0; i < rknpu_dev->num_srsts; ++i)
-		ret |= rknpu_reset_deassert(rknpu_dev->srsts[i]);
-
-	udelay(10);
-
-	if (ret) {
-		LOG_DEV_ERROR(rknpu_dev->dev,
-			      "failed to soft reset for rknpu: %d\n", ret);
-		mutex_unlock(&rknpu_dev->reset_lock);
+	/* Do not restart partially stopped hardware after an assertion failure. */
+	if (ret)
 		return ret;
+	udelay(10);
+
+	for (i = 0; i < rknpu_dev->num_srsts; i++) {
+		err = rknpu_reset_deassert(rknpu_dev->srsts[i]);
+		if (!err) {
+			err = reset_control_status(rknpu_dev->srsts[i]);
+			err = err == -ENOTSUPP ? 0 : (err > 0 ? -EIO : err);
+		}
+		if (err && !ret)
+			ret = err;
 	}
+	if (ret)
+		return ret;
+	udelay(10);
 
-	if (rknpu_dev->iommu_en)
-		domain = iommu_get_domain_for_dev(rknpu_dev->dev);
-
-	if (domain) {
+	mutex_lock(&rknpu_dev->domain_lock);
+	domain = rknpu_dev->iommu_en ?
+		iommu_get_domain_for_dev(rknpu_dev->dev) : NULL;
+	if (rknpu_dev->iommu_en && !domain)
+		ret = -ENODEV;
+	else if (domain) {
 		iommu_detach_device(domain, rknpu_dev->dev);
-		iommu_attach_device(domain, rknpu_dev->dev);
+		ret = iommu_attach_device(domain, rknpu_dev->dev);
 	}
-
-	rknpu_dev->soft_reseting = false;
-
-	if (rknpu_dev->config->state_init != NULL)
+	mutex_unlock(&rknpu_dev->domain_lock);
+	if (ret)
+		return ret;
+	if (rknpu_dev->config->state_init)
 		rknpu_dev->config->state_init(rknpu_dev);
-
-	mutex_unlock(&rknpu_dev->reset_lock);
-#endif
-
 	return 0;
+#else
+	return -EOPNOTSUPP;
+#endif
 }

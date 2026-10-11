@@ -10,6 +10,7 @@
 #include <linux/sync_file.h>
 #include <linux/io.h>
 #include <linux/moduleparam.h>
+#include <linux/module.h>
 #include <linux/pm_runtime.h>
 
 #include "rknpu_ioctl.h"
@@ -307,8 +308,7 @@ static inline int rknpu_job_wait(struct rknpu_job *job)
 
 	do {
 		ret = wait_event_timeout(subcore_data->job_done_wq,
-					 job->flags & RKNPU_JOB_DONE ||
-						 rknpu_dev->soft_reseting,
+					 READ_ONCE(job->flags) & RKNPU_JOB_DONE,
 					 msecs_to_jiffies(args->timeout));
 
 		if (++wait_count >= 3)
@@ -335,43 +335,31 @@ static inline int rknpu_job_wait(struct rknpu_job *job)
 		}
 	} while (ret == 0 && continue_wait);
 
-	last_task = job->last_task;
-	if (!last_task) {
-		LOG_ERROR("job commit failed\n");
-		return ret < 0 ? ret : -EINVAL;
-	}
-
-	last_task->int_status = job->int_status[core_index];
-
-	if (ret <= 0) {
-		args->task_counter = 0;
-		rknpu_core_base = rknpu_dev->base[core_index];
-		if (args->flags & RKNPU_JOB_PC) {
-			uint32_t task_status = REG_READ(
-				rknpu_dev->config->pc_task_status_offset);
-			args->task_counter =
-				(task_status &
-				 rknpu_dev->config->pc_task_number_mask);
+	/* Do not touch task memory or MMIO while another submitter is resetting
+	 * the device. The abort path below joins recovery under reset_lock. */
+	spin_lock_irqsave(&rknpu_dev->dispatch_lock, flags);
+	if (job->flags & RKNPU_JOB_DONE) {
+		ret = job->ret;
+		if (!ret) {
+			last_task = job->last_task;
+			if (last_task)
+				last_task->int_status = job->int_status[core_index];
+			args->task_counter = args->task_number;
+			args->hw_elapse_time = job->hw_elapse_time;
 		}
-
-		LOG_ERROR(
-			"failed to wait job, task counter: %d, flags: %#x, ret = %d, elapsed time: %lldus\n",
-			args->task_counter, args->flags, ret,
-			ktime_us_delta(ktime_get(), job->timestamp));
-
-		return ret < 0 ? ret : -ETIMEDOUT;
+	} else {
+		ret = ret < 0 ? ret : -ETIMEDOUT;
+		args->task_counter = 0;
+		if (!rknpu_dev->soft_reseting && job->last_task &&
+		    (args->flags & RKNPU_JOB_PC)) {
+			rknpu_core_base = rknpu_dev->base[core_index];
+			args->task_counter = REG_READ(
+				rknpu_dev->config->pc_task_status_offset) &
+				rknpu_dev->config->pc_task_number_mask;
+		}
 	}
-
-	if (!(job->flags & RKNPU_JOB_DONE))
-		return -EINVAL;
-
-	if (job->ret)
-		return job->ret;
-
-	args->task_counter = args->task_number;
-	args->hw_elapse_time = job->hw_elapse_time;
-
-	return 0;
+	spin_unlock_irqrestore(&rknpu_dev->dispatch_lock, flags);
+	return ret;
 }
 
 /* Restores RK3588 S_POINTER initialization independently of IRQ count.
@@ -584,14 +572,16 @@ static void rknpu_job_next(struct rknpu_device *rknpu_dev, int core_index)
 {
 	struct rknpu_job *job;
 	struct rknpu_subcore_data *subcore_data;
-	unsigned long flags;
+	unsigned long flags, dispatch_flags;
 
+	spin_lock_irqsave(&rknpu_dev->dispatch_lock, dispatch_flags);
+	if (rknpu_dev->soft_reseting)
+		goto out;
 	subcore_data = &rknpu_dev->subcore_datas[core_index];
 	spin_lock_irqsave(&rknpu_dev->irq_lock, flags);
-	if (rknpu_dev->soft_reseting || subcore_data->job ||
-	    list_empty(&subcore_data->todo_list)) {
+	if (subcore_data->job || list_empty(&subcore_data->todo_list)) {
 		spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
-		return;
+		goto out;
 	}
 	job = list_first_entry(&subcore_data->todo_list, struct rknpu_job,
 			       head[core_index]);
@@ -608,6 +598,8 @@ static void rknpu_job_next(struct rknpu_device *rknpu_dev, int core_index)
 		rknpu_job_commit(job);
 	spin_unlock_irqrestore(&job->job_lock, flags);
 	rknpu_job_put(job);
+out:
+	spin_unlock_irqrestore(&rknpu_dev->dispatch_lock, dispatch_flags);
 }
 
 /* Called with job_lock held. Release scheduler/IOMMU ownership exactly once. */
@@ -692,17 +684,24 @@ static void rknpu_job_schedule(struct rknpu_job *job)
 	int i = 0, core_index = 0;
 	unsigned long flags;
 
+	mutex_lock(&rknpu_dev->reset_lock);
+	if (rknpu_dev->reset_failed) {
+		job->ret = -EIO;
+		goto out_unlock;
+	}
 	if (job->args->core_mask == RKNPU_CORE_AUTO_MASK) {
+		spin_lock_irqsave(&rknpu_dev->irq_lock, flags);
 		core_index = rknpu_schedule_core_index(rknpu_dev);
 		job->args->core_mask = rknpu_core_mask(core_index);
 		job->use_core_num = 1;
 		atomic_set(&job->run_count, job->use_core_num);
 		atomic_set(&job->interrupt_count, job->use_core_num);
+		spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
 	}
 
 	if (rknpu_iommu_domain_get_and_switch(rknpu_dev, job->iommu_domain_id)) {
 		job->ret = -EINVAL;
-		return;
+		goto out_unlock;
 	}
 
 	spin_lock_irqsave(&rknpu_dev->irq_lock, flags);
@@ -717,7 +716,7 @@ static void rknpu_job_schedule(struct rknpu_job *job)
 				job->ret = -EOVERFLOW;
 				spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
 				rknpu_iommu_domain_put(rknpu_dev);
-				return;
+				goto out_unlock;
 			}
 		}
 	}
@@ -732,30 +731,27 @@ static void rknpu_job_schedule(struct rknpu_job *job)
 	}
 	spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
 
+out_unlock:
+	mutex_unlock(&rknpu_dev->reset_lock);
 	for (i = 0; i < rknpu_dev->config->num_irqs; i++) {
 		if (job->args->core_mask & rknpu_core_mask(i))
 			rknpu_job_next(rknpu_dev, i);
 	}
 }
 
-static void rknpu_job_abort(struct rknpu_job *job, int ret)
+/* dispatch_lock and job_lock held; hardware is stopped or this job never ran. */
+static void rknpu_job_detach(struct rknpu_job *job)
 {
 	struct rknpu_device *dev = job->rknpu_dev;
-	unsigned long flags, irq_flags;
+	unsigned long flags;
 	int i;
 
-	spin_lock_irqsave(&job->job_lock, flags);
-	if (job->flags & RKNPU_JOB_DONE) {
-		spin_unlock_irqrestore(&job->job_lock, flags);
-		return;
-	}
 	job->flags |= RKNPU_JOB_DETACHED;
-	spin_lock_irqsave(&dev->irq_lock, irq_flags);
+	spin_lock_irqsave(&dev->irq_lock, flags);
 	for (i = 0; i < dev->config->num_irqs; i++) {
 		struct rknpu_subcore_data *core = &dev->subcore_datas[i];
 		bool attached = false;
 
-		/* An IRQ having entered is not proof that it completed the job. */
 		if (core->job == job) {
 			core->job = NULL;
 			attached = true;
@@ -769,40 +765,151 @@ static void rknpu_job_abort(struct rknpu_job *job, int ret)
 		if (attached)
 			core->task_num -= rknpu_get_task_number(job, i);
 	}
-	spin_unlock_irqrestore(&dev->irq_lock, irq_flags);
-	rknpu_job_finish(job, ret);
-	spin_unlock_irqrestore(&job->job_lock, flags);
+	spin_unlock_irqrestore(&dev->irq_lock, flags);
+}
 
-	/* The caller still owns a reference, as do IRQ readers already in flight. */
-	if (ret == -ETIMEDOUT) {
-		LOG_ERROR("job timeout, flags: %#x:\n", job->flags);
-		for (i = 0; i < dev->config->num_irqs; i++) {
-			if (job->args->core_mask & rknpu_core_mask(i)) {
-				void __iomem *rknpu_core_base =
-					dev->base[i];
-				LOG_ERROR(
-					"\tcore %d irq status: %#x, raw status: %#x, require mask: %#x, task counter: %#x, elapsed time: %lldus\n",
-					i, REG_READ(RKNPU_OFFSET_INT_STATUS),
-					REG_READ(RKNPU_OFFSET_INT_RAW_STATUS),
-					job->int_mask[i],
-					(REG_READ(
-						 dev->config
-							 ->pc_task_status_offset) &
-					 dev->config->pc_task_number_mask),
-					ktime_us_delta(ktime_get(),
-						       job->timestamp));
-			}
-		}
-		r6s_diag_job_snapshot(job, 2);
-		rknpu_soft_reset(dev);
-	} else {
-		LOG_ERROR(
-			"job abort, flags: %#x, ret: %d, elapsed time: %lldus\n",
-			job->flags, job->ret,
+/* Recovery has gated dispatch/IRQ and owns the job and powered register bank. */
+static void rknpu_job_timeout_dump(struct rknpu_job *job)
+{
+	struct rknpu_device *dev = job->rknpu_dev;
+	int i;
+
+	LOG_ERROR("job timeout, flags: %#x:\n", job->flags);
+	for (i = 0; i < dev->config->num_irqs; i++) {
+		void __iomem *rknpu_core_base = dev->base[i];
+
+		if (!(job->args->core_mask & rknpu_core_mask(i)))
+			continue;
+		LOG_ERROR("core %d irq status: %#x, raw: %#x, mask: %#x, task counter: %#x, elapsed: %lldus\n",
+			i, REG_READ(RKNPU_OFFSET_INT_STATUS),
+			REG_READ(RKNPU_OFFSET_INT_RAW_STATUS), job->int_mask[i],
+			REG_READ(dev->config->pc_task_status_offset) &
+			dev->config->pc_task_number_mask,
 			ktime_us_delta(ktime_get(), job->timestamp));
 	}
+	r6s_diag_job_snapshot(job, 2);
+}
+
+/* Process context only. reset_lock serializes recovery and queue insertion;
+ * dispatch_lock drains in-flight IRQ/commit sections before closing the gate.
+ * The reset is device-wide: every active job is affected, not just the caller.
+ * Queued-only jobs survive; partially selected multi-core jobs are canceled. */
+static int rknpu_job_recover(struct rknpu_device *dev,
+			     struct rknpu_job *timed_out, int reason)
+{
+	struct rknpu_job *active[RKNPU_MAX_CORES];
+	unsigned long flags, job_flags;
+	int i, n = 0, ret = 0;
+	bool needs_reset = !timed_out;
+
+	mutex_lock(&dev->reset_lock);
+	spin_lock_irqsave(&dev->dispatch_lock, flags);
+	if (timed_out && (timed_out->flags & RKNPU_JOB_DONE))
+		goto unlock_dispatch;
+	for (i = 0; i < dev->config->num_irqs; i++) {
+		struct rknpu_job *job = dev->subcore_datas[i].job;
+		int k;
+
+		if (!job)
+			continue;
+		if (job == timed_out)
+			needs_reset = true;
+		for (k = 0; k < n && active[k] != job; k++)
+			;
+		if (k == n)
+			active[n++] = job;
+	}
+	if (!needs_reset) {
+		spin_lock_irqsave(&timed_out->job_lock, job_flags);
+		rknpu_job_detach(timed_out);
+		rknpu_job_finish(timed_out, reason);
+		spin_unlock_irqrestore(&timed_out->job_lock, job_flags);
+		goto unlock_dispatch;
+	}
+	if (dev->reset_failed && timed_out) {
+		ret = -EIO; /* Only an explicit device reset retries quarantine. */
+		goto unlock_dispatch;
+	}
+	dev->soft_reseting = true;
+	for (i = 0; i < n; i++)
+		rknpu_job_get(active[i]);
+	spin_unlock_irqrestore(&dev->dispatch_lock, flags);
+
+	/* Hold PM/module ownership across failure. No DONE/fence/slot release is
+	 * legal until a later explicit reset confirms the hardware has stopped. */
+	if (!dev->recovery_module_ref) {
+		__module_get(THIS_MODULE);
+		dev->recovery_module_ref = true;
+	}
+	if (!dev->recovery_power_ref) {
+		ret = rknpu_power_get(dev);
+		if (!ret)
+			dev->recovery_power_ref = true;
+	}
+	if (!ret) {
+		for (i = 0; i < dev->config->num_irqs; i++) {
+			void __iomem *rknpu_core_base = dev->base[i];
+
+			REG_WRITE(0, RKNPU_OFFSET_INT_MASK);
+			REG_READ(RKNPU_OFFSET_INT_MASK); /* flush posted write */
+		}
+		if (timed_out && reason == -ETIMEDOUT)
+			rknpu_job_timeout_dump(timed_out);
+		ret = rknpu_reset_hw(dev);
+	}
+
+	spin_lock_irqsave(&dev->dispatch_lock, flags);
+	if (!ret) {
+		for (i = 0; i < dev->config->num_irqs; i++) {
+			void __iomem *rknpu_core_base = dev->base[i];
+
+			REG_WRITE(RKNPU_INT_CLEAR, RKNPU_OFFSET_INT_CLEAR);
+			if (REG_READ(RKNPU_OFFSET_INT_RAW_STATUS) ||
+			    REG_READ(RKNPU_OFFSET_INT_STATUS))
+				ret = -EIO;
+		}
+	}
+	dev->reset_failed = !!ret;
+	if (!ret) {
+		for (i = 0; i < n; i++) {
+			struct rknpu_job *job = active[i];
+
+			spin_lock_irqsave(&job->job_lock, job_flags);
+			rknpu_job_detach(job);
+			rknpu_job_finish(job, job == timed_out ? reason : -EIO);
+			spin_unlock_irqrestore(&job->job_lock, job_flags);
+		}
+		dev->soft_reseting = false;
+	} else {
+		LOG_ERROR("NPU recovery failed (%d); dispatch blocked, jobs and fences retained\n", ret);
+	}
+	for (i = 0; i < n; i++)
+		rknpu_job_put(active[i]);
+unlock_dispatch:
+	spin_unlock_irqrestore(&dev->dispatch_lock, flags);
+	/* Restart the preserved queue while recovery still owns its PM reference. */
 	for (i = 0; i < dev->config->num_irqs; i++)
 		rknpu_job_next(dev, i);
+	if (!dev->soft_reseting && dev->recovery_power_ref) {
+		dev->recovery_power_ref = false;
+		rknpu_power_put_delay(dev);
+	}
+	if (!dev->soft_reseting && dev->recovery_module_ref) {
+		dev->recovery_module_ref = false;
+		module_put(THIS_MODULE);
+	}
+	mutex_unlock(&dev->reset_lock);
+	return ret;
+}
+
+int rknpu_soft_reset(struct rknpu_device *dev)
+{
+	return rknpu_job_recover(dev, NULL, -EIO);
+}
+
+static void rknpu_job_abort(struct rknpu_job *job, int ret)
+{
+	rknpu_job_recover(job->rknpu_dev, job, ret);
 }
 
 static inline uint32_t rknpu_fuzz_status(uint32_t status)
@@ -837,14 +944,21 @@ static inline irqreturn_t rknpu_irq_handler(int irq, void *data, int core_index)
 	struct rknpu_subcore_data *subcore_data = NULL;
 	struct rknpu_job *job = NULL;
 	uint32_t status = 0;
-	unsigned long flags;
+	unsigned long flags, dispatch_flags;
 
 	/* The PC IRQ is shared with the IOMMU. An unrelated IRQ must not mark
 	 * this job entered, clear registers, or advance its queue. RAW status
 	 * and a task counter are not a substitute for the masked DPU IRQ. */
-	status = REG_READ(RKNPU_OFFSET_INT_STATUS);
-	if (!status)
+	spin_lock_irqsave(&rknpu_dev->dispatch_lock, dispatch_flags);
+	if (rknpu_dev->soft_reseting) {
+		spin_unlock_irqrestore(&rknpu_dev->dispatch_lock, dispatch_flags);
 		return IRQ_NONE;
+	}
+	status = REG_READ(RKNPU_OFFSET_INT_STATUS);
+	if (!status) {
+		spin_unlock_irqrestore(&rknpu_dev->dispatch_lock, dispatch_flags);
+		return IRQ_NONE;
+	}
 
 	subcore_data = &rknpu_dev->subcore_datas[core_index];
 
@@ -853,6 +967,7 @@ static inline irqreturn_t rknpu_irq_handler(int irq, void *data, int core_index)
 	if (!job) {
 		spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
 		REG_WRITE(RKNPU_INT_CLEAR, RKNPU_OFFSET_INT_CLEAR);
+		spin_unlock_irqrestore(&rknpu_dev->dispatch_lock, dispatch_flags);
 		rknpu_job_next(rknpu_dev, core_index);
 		return IRQ_HANDLED;
 	}
@@ -882,6 +997,7 @@ static inline irqreturn_t rknpu_irq_handler(int irq, void *data, int core_index)
 	rknpu_job_done(job, 0, core_index);
 out:
 	spin_unlock_irqrestore(&job->job_lock, flags);
+	spin_unlock_irqrestore(&rknpu_dev->dispatch_lock, dispatch_flags);
 	rknpu_job_put(job);
 	rknpu_job_next(rknpu_dev, core_index);
 	return IRQ_HANDLED;
@@ -906,12 +1022,13 @@ static void rknpu_job_timeout_clean(struct rknpu_device *rknpu_dev,
 				    int core_mask)
 {
 	struct rknpu_job *job;
-	unsigned long flags;
+	unsigned long flags, dispatch_flags;
 	int i;
 
 	for (i = 0; i < rknpu_dev->config->num_irqs; i++) {
 		if (!(core_mask & rknpu_core_mask(i)))
 			continue;
+		spin_lock_irqsave(&rknpu_dev->dispatch_lock, dispatch_flags);
 		spin_lock_irqsave(&rknpu_dev->irq_lock, flags);
 		job = rknpu_dev->subcore_datas[i].job;
 		/* timeout is ms; widen before multiplying to cover the full u32 ABI.
@@ -923,6 +1040,7 @@ static void rknpu_job_timeout_clean(struct rknpu_device *rknpu_dev,
 		else
 			job = NULL;
 		spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
+		spin_unlock_irqrestore(&rknpu_dev->dispatch_lock, dispatch_flags);
 		if (job) {
 			rknpu_job_abort(job, -ETIMEDOUT);
 			rknpu_job_put(job);
@@ -1039,8 +1157,14 @@ static int rknpu_submit(struct rknpu_device *rknpu_dev,
 		args->task_counter = job->args->task_counter;
 		args->hw_elapse_time = job->args->hw_elapse_time;
 	}
-	if (ret)
+	if (ret) {
 		rknpu_job_abort(job, ret);
+		/* A failed reset quarantines the active job. Keep this ioctl and its
+		 * PM reference until explicit recovery can safely complete it. */
+		wait_event(rknpu_dev->subcore_datas[
+			   rknpu_wait_core_index(job->args->core_mask)].job_done_wq,
+			   READ_ONCE(job->flags) & RKNPU_JOB_DONE);
+	}
 	rknpu_job_put(job);
 	return ret;
 }

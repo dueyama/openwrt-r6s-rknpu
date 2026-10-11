@@ -33,12 +33,13 @@ Linux 6.12.112/RK3588S environment.
 
 The initial source extraction preserved R10 functional code and DTS properties.
 Subsequent job-lifetime, timeout, DMA fallback and fence error-path fixes are
-described in [the error-path review](ERROR_PATH_REVIEW.md). Original R10 and
-current source hashes remain in `provenance/r10-source-files.json`. The initial
-revision 10 OpenWrt package built successfully; revision 11 includes the fixes.
-The corrected driver passed a separate module build, but a revision 11 APK and
-firmware image have not been rebuilt. No automatic module-load entry is added.
-Installation and boot behavior remain untested.
+recorded in [the first error-path review](ERROR_PATH_REVIEW.md). Revision 12
+adds [serialized reset recovery and DMA32 initialization](RESET_DMA32_REVIEW.md),
+including a fail-closed recovery state. Original R10 and current source hashes
+remain in `provenance/r10-source-files.json`. The initial revision 10 OpenWrt
+package built successfully. The revision 12 driver passed a separate module
+build, but a revision 12 APK and firmware image have not been built. No automatic
+module-load entry is added. Installation and boot behavior remain untested.
 
 This is a downstream, experimental integration. The private DT compatible has
 not been represented as an accepted upstream binding, and schema/upstream
