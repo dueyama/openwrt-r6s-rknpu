@@ -1,0 +1,161 @@
+{
+  "date": "2026-10-11",
+  "scope": "Fresh isolated AArch64 Linux build and synthetic tests; no device deployment",
+  "environment": {
+    "base_image": "ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55",
+    "runtime_c_compiler": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "runtime_cxx_compiler": "g++-14 (Ubuntu 14.2.0-4ubuntu2~24.04.1) 14.2.0",
+    "openwrt_compiler": "GCC 14.3.0, musl"
+  },
+  "source_checks": {
+    "driver_correspondence": true,
+    "pinned_runtime_preparation": true,
+    "glibc_additional_patches": 8,
+    "libstdcxx_additional_patches": 11,
+    "host_range_tests_normal": 67,
+    "host_range_tests_asan_ubsan": 67,
+    "host_platforms": [
+      "macOS",
+      "AArch64 Linux"
+    ]
+  },
+  "runtime": {
+    "fresh_builds_passed": true,
+    "synthetic_checks": {
+      "libc-check": {
+        "exit": 0,
+        "stdout": "PASS: private glibc version, fopen rejection, resolver initialization, path normalization\n"
+      },
+      "cxx-check": {
+        "exit": 0,
+        "stdout": "PASS: private libstdc++ vector, threads, aligned allocation and overflow rejection\n"
+      }
+    },
+    "output_sha256": {
+      "glibc": {
+        "libc.so.6": "c1fcef9c6e0f3b8fcf41e43eab5d02a61a04b49e3849c741fc068a1e15a96a4b",
+        "ld-linux-aarch64.so.1": "9d0e5099722b8ec9550f7010c2b7cb890408f77e6bbc30c146f1c5a1e3620cf6",
+        "libm.so.6": "d072052f068e9905acf8e418a9a9d644372a0570eb552bb0effc2a7752955ed1",
+        "libpthread.so.0": "5412642d2c7eed702332ce72c1c37496a3c48f8acc9e24ada67c36c5278d0c71",
+        "libdl.so.2": "eaba47456a287144f8d36fe12e521f4c7a34ae2f5a240fdcafc715907d1dd104"
+      },
+      "libstdcxx": {
+        "libstdc++.so.6": "17e99908fa4c3ac37d216adefb779c2e8882a74bb72ff61f5109638abd537c31"
+      }
+    },
+    "limits": "Build-host headers and libgcc; not the full upstream suite or complete OpenWrt/SDK userspace closure"
+  },
+  "openwrt": {
+    "commit": "66673aad8f99e450f6ee2587254b1b2d19d45150",
+    "make_world_exit": 0,
+    "optional_feeds_installed": false,
+    "kernel": {
+      "kernel": "6.12.112",
+      "iommu_sha256": "618a116ea74ea19872313823e37109e314360898b1ca45de659e3968f71237c5",
+      "config_fragment": true,
+      "module_sha256": "3c21017ac6ef24b394664317525393681ce1dc4154048eebc227850f6b5821f3",
+      "module_bytes": 542056,
+      "undefined_symbols": 168,
+      "unresolved_symbols": [],
+      "dtb_sha256": "29c40ddc88f53aedd503a963889255ea2a1473111f9d313dfb07f7db16785f20",
+      "device_tree_checks": {
+        "/npu@fdab0000/compatible": "rockchip,rk3588-rknpu",
+        "/iommu@fdab9000/compatible": "r6s,rk3588-iommu-3core",
+        "/npu@fdab0000/status": "okay",
+        "/iommu@fdab9000/status": "okay",
+        "/npu@fdab0000/reg": "0 fdab0000 0 10000 0 fdac0000 0 10000 0 fdad0000 0 10000",
+        "/iommu@fdab9000/reg": "0 fdab9000 0 100 0 fdaba000 0 100 0 fdaca000 0 100 0 fdada000 0 100",
+        "/npu@fdab0000/interrupt-names": "npu0_irq npu1_irq npu2_irq",
+        "/npu@fdab0000/clock-names": "clk_npu aclk0 hclk0 aclk1 hclk1 aclk2 hclk2 pclk",
+        "/npu@fdab0000/power-domain-names": "npu0 npu1 npu2",
+        "/npu@fdab0000/interrupts": "0 110 4 0 0 111 4 0 0 112 4 0",
+        "/iommu@fdab9000/interrupts": "0 110 4 0 0 111 4 0 0 112 4 0",
+        "/npu@fdab0000/reset-names": "srst_a0 srst_h0 srst_a1 srst_h1 srst_a2 srst_h2",
+        "/npu@fdab0000/resets": "21 110 21 112 21 fa 21 fc 21 fe 21 100",
+        "/npu@fdab0000/clocks": "a 6 21 11f 21 120 21 114 21 115 21 116 21 117 21 123",
+        "/iommu@fdab9000/clocks": "21 11f 21 120 21 114 21 115 21 116 21 117",
+        "/npu@fdab0000/power-domains": "22 9 22 a 22 b",
+        "/iommu@fdab9000/power-domains": "22 9 22 a 22 b",
+        "/iommu@fdab9000/#iommu-cells": "0",
+        "/npu@fdab0000/operating-points-v2": "10d",
+        "/r6s-npu-opp-table/phandle": "10d",
+        "/npu@fdab0000/assigned-clock-rates": "200000000",
+        "/npu@fdab0000/iommus": "10f",
+        "/iommu@fdab9000/phandle": "10f",
+        "/r6s-npu-opp-table/opp-200000000/opp-microvolt": "700000 700000 850000",
+        "/r6s-npu-opp-table/opp-200000000/opp-hz": "0 200000000"
+      }
+    },
+    "artifacts": {
+      "images": [
+        {
+          "image": "openwrt-rockchip-armv8-friendlyarm_nanopi-r6s-ext4-sysupgrade.img.gz",
+          "image_bytes": 10023944,
+          "image_sha256": "9979fe3c54a75ffc92ef1748edbdb2c2f95982fcb178a0321b46a13bc985857c",
+          "image_unchanged": true,
+          "sha256sums_match": true,
+          "gzip_payload_valid": true,
+          "expanded_image_bytes": 176160768,
+          "expanded_image_sha256": "4d4c7fc00ca0d08530bee1f62a10ed3b7852d9cc1e4b395f033a5106d24d2783",
+          "mbr_signature_valid": true,
+          "metadata": {
+            "metadata_version": "1.1",
+            "compat_version": "1.0",
+            "supported_devices": [
+              "friendlyarm,nanopi-r6s"
+            ],
+            "version": {
+              "dist": "OpenWrt",
+              "version": "25.12-SNAPSHOT",
+              "revision": "r0-66673aa",
+              "target": "rockchip/armv8",
+              "board": "friendlyarm_nanopi-r6s"
+            }
+          }
+        },
+        {
+          "image": "openwrt-rockchip-armv8-friendlyarm_nanopi-r6s-squashfs-sysupgrade.img.gz",
+          "image_bytes": 9118196,
+          "image_sha256": "d76f81078485d853b8dbbcf134a3238d6f6aa3b5e41f767b42bed6b209c44a4a",
+          "image_unchanged": true,
+          "sha256sums_match": true,
+          "gzip_payload_valid": true,
+          "expanded_image_bytes": 176160768,
+          "expanded_image_sha256": "3b4ad777d90104e7edcecfd9c54c7a6f8653fe9c02fca5f6d5d092d516f6c174",
+          "mbr_signature_valid": true,
+          "metadata": {
+            "metadata_version": "1.1",
+            "compat_version": "1.0",
+            "supported_devices": [
+              "friendlyarm,nanopi-r6s"
+            ],
+            "version": {
+              "dist": "OpenWrt",
+              "version": "25.12-SNAPSHOT",
+              "revision": "r0-66673aa",
+              "target": "rockchip/armv8",
+              "board": "friendlyarm_nanopi-r6s"
+            }
+          }
+        }
+      ],
+      "package_signature": "Individual locally built APK is unsigned; extraction only, no install or trust-store change",
+      "package": "kmod-r6s-rknpu-6.12.112-r10.apk",
+      "package_sha256": "b5000f0fd4f3aea51a8b9df644f64ecd6ea97a17693414b797fa93599d91f164",
+      "package_files": [
+        "lib/apk/packages/kmod-r6s-rknpu.list",
+        "lib/modules/6.12.112/rknpu.ko"
+      ],
+      "packaged_module_bytes": 76488,
+      "packaged_module_sha256": "19b104f3a8238fa0a5926361224b67c1a8280e9d5e7b0789453a42c06fa9dd55",
+      "installed_module_matches_package": true,
+      "npu_autoload_absent": true
+    }
+  },
+  "limits": [
+    "No bit-for-bit firmware reproduction claim",
+    "No new hardware execution, cold-boot, service or endurance qualification",
+    "Strict numerical comparison has not passed; FP16 exact equivalence and detection accuracy remain unverified",
+    "SDK and end-to-end inference application behavior are not validated"
+  ]
+}

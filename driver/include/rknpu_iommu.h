@@ -1,0 +1,40 @@
+/* SPDX-License-Identifier: GPL-2.0 */
+/* R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md. */
+/*
+ * Copyright (C) Rockchip Electronics Co.Ltd
+ * Author: Felix Zeng <felix.zeng@rock-chips.com>
+ */
+
+#ifndef __LINUX_RKNPU_IOMMU_H
+#define __LINUX_RKNPU_IOMMU_H
+
+#include <linux/mutex.h>
+#include <linux/seq_file.h>
+#include <linux/iommu.h>
+#include <linux/iova.h>
+#include <linux/version.h>
+
+#if KERNEL_VERSION(6, 1, 0) > LINUX_VERSION_CODE
+#include <linux/dma-iommu.h>
+#endif
+
+#include "rknpu_drv.h"
+
+int rknpu_iommu_dma_map_sg(struct device *dev, struct scatterlist *sg,
+			   int nents, enum dma_data_direction dir,
+			   bool iova_aligned);
+
+void rknpu_iommu_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
+			      int nents, enum dma_data_direction dir,
+			      bool iova_aligned);
+
+int rknpu_iommu_init_domain(struct rknpu_device *rknpu_dev);
+int rknpu_iommu_switch_domain(struct rknpu_device *rknpu_dev, int domain_id);
+void rknpu_iommu_free_domains(struct rknpu_device *rknpu_dev);
+int rknpu_iommu_domain_get_and_switch(struct rknpu_device *rknpu_dev,
+				      int domain_id);
+int rknpu_iommu_domain_put(struct rknpu_device *rknpu_dev);
+
+
+
+#endif

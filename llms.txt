@@ -1,0 +1,35 @@
+# NanoPi R6S / RK3588S NPU driver port for OpenWrt
+
+> Experimental Rockchip RKNPU 0.9.8 R10 port for Linux 6.12.112 on the FriendlyElec NanoPi R6S (RK3588S, AArch64), with three-core device-tree and IOMMU integration, OpenWrt packaging and optional private GNU runtime recipes.
+
+The project was motivated by exploring Kitsune / KitNET-inspired network anomaly
+detection on a router's NPU. The application implementation, models, proprietary
+RKNN SDK and firmware binaries are outside this source repository.
+
+Isolated OpenWrt and GNU runtime builds and synthetic tests passed on 2026-10-11.
+Earlier hardware bring-up is recorded separately. Strict numerical comparison
+has not passed; detection accuracy, NPU speedup, cold boot, service activation
+and a complete endurance run are not certified. This is an experimental port,
+not a reproduced Kitsune evaluation or a complete intrusion-detection product.
+
+## Overview and evidence
+
+- [README](README.md): Motivation, scope, hardware and software baseline.
+- [Validation](docs/VALIDATION.md): Recorded hardware evidence, new build checks and remaining limits.
+- [Dated results](verification/results-2026-10-11.json): Machine-readable build checks and artifact hashes.
+- [Project metadata](repo-metadata.jsonld): Schema.org SoftwareSourceCode description and research citation.
+
+## Build and integration
+
+- [Build instructions](docs/BUILD.md): Pinned OpenWrt baseline and module integration.
+- [Isolated verification](verification/README.md): Disposable AArch64 Linux environment and minimal build.
+- [Port design](docs/PORTING.md): Driver, IOMMU and three-core device-tree changes.
+- [GNU runtime](runtime/README.md): Optional private loader and library preparation, build and synthetic checks.
+
+## Origins and licenses
+
+- [Provenance](docs/PROVENANCE.md): Direct sources, related projects and excluded inputs.
+- [Upstream pins](provenance/upstreams.json): Fixed upstream commits and hashes.
+- [License inventory](LICENSE): Component-specific terms; no blanket relicensing.
+- [Third-party notices](THIRD_PARTY_NOTICES.md): Attribution and license boundaries.
+- [Kitsune paper](https://arxiv.org/abs/1802.09089): Research motivation, not a claim of reproduced results.

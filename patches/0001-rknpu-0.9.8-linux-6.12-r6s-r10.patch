@@ -1,0 +1,1970 @@
+--- a/Kconfig
++++ b/Kconfig
+@@ -1,10 +1,12 @@
+ # SPDX-License-Identifier: GPL-2.0
++# R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md.
+ menu "RKNPU"
+ 	depends on ARCH_ROCKCHIP
+ 
+ config ROCKCHIP_RKNPU
+ 	tristate "ROCKCHIP_RKNPU"
+-	depends on DRM || DMABUF_HEAPS_ROCKCHIP_CMA_HEAP
++	depends on ARM64 && DRM && PM && PM_DEVFREQ && PM_OPP && ROCKCHIP_IOMMU
++	select DEVFREQ_GOV_USERSPACE
+ 	help
+ 	  rknpu module.
+ 
+--- a/Makefile
++++ b/Makefile
+@@ -1,4 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0
++# R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md.
+ obj-$(CONFIG_ROCKCHIP_RKNPU) += rknpu.o
+ 
+ ccflags-y += -I$(srctree)/$(src)/include
+@@ -9,8 +10,8 @@
+ rknpu-y += rknpu_reset.o
+ rknpu-y += rknpu_job.o
+ rknpu-y += rknpu_debugger.o
+-rknpu-y += rknpu_iommu.o
+-rknpu-$(CONFIG_PM_DEVFREQ) += rknpu_devfreq.o
++rknpu-y += rknpu_mainline_iommu.o
++rknpu-$(CONFIG_PM_DEVFREQ) += rknpu_mainline_devfreq.o
+ rknpu-$(CONFIG_ROCKCHIP_RKNPU_SRAM) += rknpu_mm.o
+ rknpu-$(CONFIG_ROCKCHIP_RKNPU_FENCE) += rknpu_fence.o
+ rknpu-$(CONFIG_ROCKCHIP_RKNPU_DRM_GEM) += rknpu_gem.o
+--- /dev/null
++++ b/include/r6s_busy.h
+@@ -0,0 +1,15 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md. */
++#ifndef R6S_BUSY_H
++#define R6S_BUSY_H
++#include <linux/types.h>
++struct r6s_busy_counter { u64 total_ns, start_ns, starts, finishes, aborts; bool active; };
++/* All callers hold irq_lock; read snapshots never change the counter. */
++static inline void r6s_busy_begin(struct r6s_busy_counter *b, u64 now)
++{ if (!b->active) { b->active = true; b->start_ns = now; b->starts++; } }
++static inline void r6s_busy_end(struct r6s_busy_counter *b, u64 now, bool abort)
++{ if (b->active) { if (now >= b->start_ns) b->total_ns += now-b->start_ns;
++  b->active = false; if (abort) b->aborts++; else b->finishes++; } }
++static inline u64 r6s_busy_read(const struct r6s_busy_counter *b, u64 now)
++{ return b->total_ns + (b->active && now >= b->start_ns ? now-b->start_ns : 0); }
++#endif
+--- /dev/null
++++ b/include/r6s_diag.h
+@@ -0,0 +1,37 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/* R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md. */
++/* Bounded, non-destructive RK3588 core0 snapshots from already-owned banks.
++ * Offsets: Rockchip TRM ch36 / Linux v6.18 rocket_registers.h. No command,
++ * task-buffer, model, input/output, IOMMU or unreserved-bank reads. */
++#ifndef R6S_NPU_DIAG_H
++#define R6S_NPU_DIAG_H
++
++struct r6s_diag_snapshot {
++    u32 pc_mask, pc_status, pc_raw, pc_task;
++    u32 cna_status, cna_pointer, core_status, core_pointer;
++};
++
++static inline bool r6s_diag_can_read(struct rknpu_device *d)
++{
++    return d && d->rk3588_core0_banks && d->config &&
++        d->config->num_irqs == 1 && d->base[0] &&
++        d->cna_base[0] && d->core_base[0] && d->dev &&
++        atomic_read(&d->power_refcount) > 0 && pm_runtime_active(d->dev);
++}
++
++static inline bool r6s_diag_read(struct rknpu_device *d,
++                               struct r6s_diag_snapshot *s)
++{
++    if (!s || !r6s_diag_can_read(d))
++        return false;
++    s->pc_mask = readl(d->base[0] + 0x20);
++    s->pc_status = readl(d->base[0] + 0x28);
++    s->pc_raw = readl(d->base[0] + 0x2c);
++    s->pc_task = readl(d->base[0] + 0x3c);
++    s->cna_status = readl(d->cna_base[0] + 0x0);
++    s->cna_pointer = readl(d->cna_base[0] + 0x4);
++    s->core_status = readl(d->core_base[0] + 0x0);
++    s->core_pointer = readl(d->core_base[0] + 0x4);
++    return true;
++}
++#endif
+--- /dev/null
++++ b/include/r6s_diag_flags.h
+@@ -0,0 +1,11 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/* R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md. */
++/* Classification only: does not add/remove SDK flags, mappings or sync. */
++#ifndef R6S_DIAG_FLAGS_H
++#define R6S_DIAG_FLAGS_H
++static inline unsigned int r6s_diag_bo_class(unsigned int flags)
++{
++    return ((flags & RKNPU_MEM_CACHEABLE) ? 2U : 0U) |
++           ((flags & RKNPU_MEM_KERNEL_MAPPING) ? 1U : 0U);
++}
++#endif
+--- /dev/null
++++ b/include/r6s_mmio.h
+@@ -0,0 +1,31 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md. */
++#ifndef R6S_RK3588_MMIO_H
++#define R6S_RK3588_MMIO_H
++#include <linux/ioport.h>
++#include <linux/errno.h>
++/* Normal exclusive claims for the upstream PC/CNA/CORE banks. The installed
++ * vendor DT envelope remains unchanged; IOMMU reservations are not mapped.
++ * A PC-only resource can supply PC, but must not invent absent CNA/CORE. */
++enum r6s_rk3588_bank { R6S_BANK_PC, R6S_BANK_CNA, R6S_BANK_CORE };
++static inline int r6s_rk3588_bank_resource(const struct resource *res,
++										int core, int bank, struct resource *out)
++{
++	static const unsigned int offsets[] = { 0, 0x1000, 0x3000 };
++	static const char * const names[] = {
++		"r6s-rk3588-pc", "r6s-rk3588-cna", "r6s-rk3588-core"
++	};
++	if (!res || !out || core < 0 || core >= 3 || bank < R6S_BANK_PC || bank > R6S_BANK_CORE ||
++		resource_type(res) != IORESOURCE_MEM ||
++		res->start != 0xfdab0000ULL + (unsigned long long)core * 0x10000 || res->end < res->start ||
++		(resource_size(res) != 0x1000 && resource_size(res) != 0x10000) ||
++		resource_size(res) < offsets[bank] + 0x1000)
++		return -EINVAL;
++	*out = (struct resource) {
++		.start = res->start + offsets[bank],
++		.end = res->start + offsets[bank] + 0xfff,
++		.flags = res->flags, .name = names[bank],
++	};
++	return 0;
++}
++#endif
+--- /dev/null
++++ b/include/r6s_task_range.h
+@@ -0,0 +1,91 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md. */
++#ifndef R6S_TASK_RANGE_H
++#define R6S_TASK_RANGE_H
++
++#include <linux/errno.h>
++#include <linux/limits.h>
++#include <linux/types.h>
++
++struct r6s_task_range {
++	int start;
++	int number;
++};
++
++/* Global request summary and independent RK3588 cfg3 selected-core BO ranges.
++ * No task contents or MMIO reads. Legacy cfg1 containment is unchanged. */
++static inline int r6s_rk3588_task_range(const struct rknpu_submit *args,
++				     u64 table_bytes, bool mapped,
++				     int core_index, int use_cores,
++				     unsigned int configured_irqs,
++				     unsigned int configured_mask,
++				     u64 max_submit,
++				     struct r6s_task_range *range)
++{
++	u64 global_end, sub_end;
++	u32 sub_start, sub_number;
++
++	unsigned int mask, bits, index;
++	if (!args || !range || !mapped || core_index < 0 || core_index >= 3 ||
++	    (configured_irqs != 1 && configured_irqs != 3) ||
++	    configured_mask != ((1U << configured_irqs) - 1) ||
++	    (unsigned int)core_index >= configured_irqs || !(args->flags & RKNPU_JOB_PC) ||
++	    max_submit == 0 || max_submit > INT_MAX || !args->task_number)
++		return -EINVAL;
++	mask = args->core_mask;
++	/* Explicit masks supported by the vendor commit dispatcher. AUTO is
++	 * refused before side effects; userspace selects all three explicitly. */
++	if ((mask != 1 && mask != 2 && mask != 4 && mask != 3 && mask != 7) ||
++	    (mask & ~configured_mask) || !(mask & (1U << core_index)))
++		return -EINVAL;
++	bits = (mask & 1) + ((mask >> 1) & 1) + ((mask >> 2) & 1);
++	if ((unsigned int)use_cores != bits)
++		return -EINVAL;
++	/* Vendor ABI: three-core partition entries are [2,3,4]. */
++	index = use_cores == 3 ? core_index + 2 : core_index;
++	sub_start = args->subcore_task[index].task_start;
++	sub_number = args->subcore_task[index].task_number;
++	global_end = (u64)args->task_start + args->task_number;
++	sub_end = (u64)sub_start + sub_number;
++	if (!sub_number || global_end > INT_MAX ||
++	    global_end > table_bytes / sizeof(struct rknpu_task) ||
++	    sub_end > INT_MAX ||
++	    sub_end > table_bytes / sizeof(struct rknpu_task) ||
++	    sub_number > (u32)(INT_MAX - max_submit + 1))
++		return -EINVAL;
++
++	/* Vendor cfg3 selects slots[core] for use1/2 and slots[core+2] for use3
++	 * independently from the GEM table.
++	 * The summary count is not the physical enclosing descriptor span.
++	 * Keep the old parent interval restriction for the legacy cfg1 board. */
++	if (configured_irqs != 3 &&
++	    (sub_start < args->task_start || sub_end > global_end))
++		return -EINVAL;
++
++	range->start = sub_start;
++	range->number = sub_number;
++	return 0;
++}
++
++static inline int r6s_task_range_chunk(const struct r6s_task_range *range,
++				     int submit_index, u64 max_submit,
++				     struct r6s_task_range *chunk)
++{
++	u64 offset, start, remaining, number;
++
++	if (!range || !chunk || range->start < 0 || range->number <= 0 ||
++	    submit_index < 0 || max_submit == 0 || max_submit > INT_MAX ||
++	    (u64)range->start + range->number > INT_MAX)
++		return -EINVAL;
++	offset = (u64)submit_index * max_submit;
++	if (offset >= (u64)range->number)
++		return -EINVAL;
++	start = (u64)range->start + offset;
++	remaining = range->number - offset;
++	number = remaining > (u64)max_submit ? (u64)max_submit : remaining;
++	chunk->start = start;
++	chunk->number = number;
++	return 0;
++}
++
++#endif
+--- a/include/rknpu_drv.h
++++ b/include/rknpu_drv.h
+@@ -1,4 +1,5 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
++/* R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md. */
+ /*
+  * Copyright (C) Rockchip Electronics Co.Ltd
+  * Author: Felix Zeng <felix.zeng@rock-chips.com>
+@@ -16,11 +17,10 @@
+ #include <linux/regulator/consumer.h>
+ #include <linux/version.h>
+ #include <linux/hrtimer.h>
++#include "r6s_busy.h"
+ #include <linux/miscdevice.h>
+ 
+-#include <soc/rockchip/rockchip_opp_select.h>
+-#include <soc/rockchip/rockchip_system_monitor.h>
+-#include <soc/rockchip/rockchip_ipa.h>
++#include <linux/devfreq.h>
+ 
+ #include "rknpu_job.h"
+ #include "rknpu_fence.h"
+@@ -111,6 +111,12 @@
+  */
+ struct rknpu_device {
+ 	void __iomem *base[RKNPU_MAX_CORES];
++	/* RK3588 core0 disjoint, exclusively reserved host control banks. */
++	void __iomem *cna_base[RKNPU_MAX_CORES];
++	void __iomem *core_base[RKNPU_MAX_CORES];
++	bool rk3588_core0_banks;
++	u64 r6s_load_epoch_ns;
++	struct r6s_busy_counter r6s_busy[RKNPU_MAX_CORES];
+ 	struct device *dev;
+ #ifdef CONFIG_ROCKCHIP_RKNPU_DRM_GEM
+ 	struct device *fake_dev;
+@@ -137,12 +143,12 @@
+ 	int num_clks;
+ 	struct regulator *vdd;
+ 	struct regulator *mem;
+-	struct monitor_dev_info *mdev_info;
+-	struct ipa_power_model_data *model_data;
+ 	struct thermal_cooling_device *devfreq_cooling;
+ 	struct devfreq *devfreq;
+ 	unsigned long ondemand_freq;
+-	struct rockchip_opp_info opp_info;
++	struct mutex frequency_lock;
++	int opp_config_token;
++	bool opp_table_added;
+ 	unsigned long current_freq;
+ 	unsigned long current_volt;
+ 	int bypass_irq_handler;
+@@ -152,6 +158,10 @@
+ 	struct device *genpd_dev_npu1;
+ 	struct device *genpd_dev_npu2;
+ 	bool multiple_domains;
++	atomic_t r6s_diag_bo_classes[4];
++	atomic_t r6s_diag_sync_classes[2];
++	atomic_t r6s_diag_claimed;
++	atomic_t r6s_diag_pm_logged;
+ 	atomic_t power_refcount;
+ 	atomic_t cmdline_power_refcount;
+ 	struct delayed_work power_off_work;
+--- a/include/rknpu_iommu.h
++++ b/include/rknpu_iommu.h
+@@ -1,4 +1,5 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
++/* R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md. */
+ /*
+  * Copyright (C) Rockchip Electronics Co.Ltd
+  * Author: Felix Zeng <felix.zeng@rock-chips.com>
+@@ -19,25 +20,6 @@
+ 
+ #include "rknpu_drv.h"
+ 
+-enum iommu_dma_cookie_type {
+-	IOMMU_DMA_IOVA_COOKIE,
+-	IOMMU_DMA_MSI_COOKIE,
+-};
+-
+-struct rknpu_iommu_dma_cookie {
+-	enum iommu_dma_cookie_type type;
+-
+-	/* Full allocator for IOMMU_DMA_IOVA_COOKIE */
+-	struct iova_domain iovad;
+-};
+-
+-dma_addr_t rknpu_iommu_dma_alloc_iova(struct iommu_domain *domain, size_t size,
+-				      u64 dma_limit, struct device *dev,
+-				      bool size_aligned);
+-
+-void rknpu_iommu_dma_free_iova(struct rknpu_iommu_dma_cookie *cookie,
+-			       dma_addr_t iova, size_t size, bool size_aligned);
+-
+ int rknpu_iommu_dma_map_sg(struct device *dev, struct scatterlist *sg,
+ 			   int nents, enum dma_data_direction dir,
+ 			   bool iova_aligned);
+@@ -53,8 +35,6 @@
+ 				      int domain_id);
+ int rknpu_iommu_domain_put(struct rknpu_device *rknpu_dev);
+ 
+-#if KERNEL_VERSION(5, 10, 0) < LINUX_VERSION_CODE
+-int iommu_get_dma_cookie(struct iommu_domain *domain);
+-#endif
++
+ 
+ #endif
+--- a/include/rknpu_job.h
++++ b/include/rknpu_job.h
+@@ -1,4 +1,5 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
++/* R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md. */
+ /*
+  * Copyright (C) Rockchip Electronics Co.Ltd
+  * Author: Felix Zeng <felix.zeng@rock-chips.com>
+@@ -35,6 +36,8 @@
+ 	int ret;
+ 	struct rknpu_submit *args;
+ 	bool args_owner;
++	bool r6s_diag_selected;
++	atomic_t r6s_diag_stages;
+ 	struct rknpu_task *first_task;
+ 	struct rknpu_task *last_task;
+ 	uint32_t int_mask[RKNPU_MAX_CORES];
+@@ -50,6 +53,8 @@
+ 	atomic_t submit_count[RKNPU_MAX_CORES];
+ 	int iommu_domain_id;
+ };
++
++extern bool r6s_diag_once;
+ 
+ irqreturn_t rknpu_core0_irq_handler(int irq, void *data);
+ irqreturn_t rknpu_core1_irq_handler(int irq, void *data);
+--- a/rknpu_drv.c
++++ b/rknpu_drv.c
+@@ -1,4 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0
++/* R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md. */
+ /*
+  * Copyright (C) Rockchip Electronics Co.Ltd
+  * Author: Felix Zeng <felix.zeng@rock-chips.com>
+@@ -30,17 +31,18 @@
+ #include <linux/clk-provider.h>
+ #include <linux/pm_domain.h>
+ #include <linux/pm_runtime.h>
++#include <dt-bindings/power/rk3588-power.h>
+ #include <linux/regmap.h>
+ #include <linux/of_address.h>
+ 
+-#ifndef FPGA_PLATFORM
+-#include <soc/rockchip/rockchip_iommu.h>
+-#endif
++#include <linux/nvmem-consumer.h>
++#include <linux/capability.h>
+ 
+ #include "rknpu_ioctl.h"
+ #include "rknpu_reset.h"
+ #include "rknpu_fence.h"
+ #include "rknpu_drv.h"
++#include "r6s_mmio.h"
+ #include "rknpu_gem.h"
+ #include "rknpu_devfreq.h"
+ #include "rknpu_iommu.h"
+@@ -190,7 +192,7 @@
+ 	.pc_task_status_offset = 0x3c,
+ 	.pc_dma_ctrl = 0,
+ 	.irqs = rk3588_npu_irqs,
+-	.num_irqs = ARRAY_SIZE(rk3588_npu_irqs),
++	.num_irqs = 3,
+ 	.nbuf_phyaddr = 0,
+ 	.nbuf_size = 0,
+ 	.max_submit_number = (1 << 12) - 1,
+@@ -327,15 +329,23 @@
+ static void rknpu_power_off_delay_work(struct work_struct *power_off_work)
+ {
+ 	int ret = 0;
++	int diag_ref_before;
+ 	struct rknpu_device *rknpu_dev =
+ 		container_of(to_delayed_work(power_off_work),
+ 			     struct rknpu_device, power_off_work);
+ 	mutex_lock(&rknpu_dev->power_lock);
++	diag_ref_before = atomic_read(&rknpu_dev->power_refcount);
+ 	if (atomic_dec_if_positive(&rknpu_dev->power_refcount) == 0) {
+ 		ret = rknpu_power_off(rknpu_dev);
+ 		if (ret)
+ 			atomic_inc(&rknpu_dev->power_refcount);
+ 	}
++	if (r6s_diag_once && atomic_read(&rknpu_dev->r6s_diag_claimed) &&
++	    atomic_cmpxchg(&rknpu_dev->r6s_diag_pm_logged, 0, 1) == 0)
++		pr_info("R6S_NPU_DIAG delayed_off before=%d after=%d ret=%d active=%u delay_ms=%lu\n",
++			diag_ref_before, atomic_read(&rknpu_dev->power_refcount),
++			ret, !!pm_runtime_active(rknpu_dev->dev),
++			rknpu_dev->power_put_delay);
+ 	mutex_unlock(&rknpu_dev->power_lock);
+ 
+ 	if (ret)
+@@ -347,8 +357,11 @@
+ 	int ret = 0;
+ 
+ 	mutex_lock(&rknpu_dev->power_lock);
+-	if (atomic_inc_return(&rknpu_dev->power_refcount) == 1)
++	if (atomic_inc_return(&rknpu_dev->power_refcount) == 1) {
+ 		ret = rknpu_power_on(rknpu_dev);
++		if (ret)
++			atomic_dec(&rknpu_dev->power_refcount);
++	}
+ 	mutex_unlock(&rknpu_dev->power_lock);
+ 
+ 	return ret;
+@@ -653,7 +666,9 @@
+ 	{                                                                   \
+ 		struct rknpu_device *rknpu_dev = dev_get_drvdata(dev->dev); \
+ 		int ret = -EINVAL;                                          \
+-		rknpu_power_get(rknpu_dev);                                 \
++		if (!capable(CAP_SYS_ADMIN)) return -EPERM;                 \
++		ret = rknpu_power_get(rknpu_dev);                           \
++		if (ret) return ret;                                       \
+ 		ret = func(dev, data, file_priv);                           \
+ 		rknpu_power_put_delay(rknpu_dev);                           \
+ 		return ret;                                                 \
+@@ -718,19 +733,20 @@
+ #else
+ 	.dumb_map_offset = drm_gem_dumb_map_offset,
+ #endif
+-	.prime_handle_to_fd = drm_gem_prime_handle_to_fd,
+-	.prime_fd_to_handle = drm_gem_prime_fd_to_handle,
+-#if KERNEL_VERSION(4, 13, 0) <= LINUX_VERSION_CODE
++		#if KERNEL_VERSION(4, 13, 0) <= LINUX_VERSION_CODE
+ 	.gem_prime_import = rknpu_gem_prime_import,
+ #else
+ 	.gem_prime_import = drm_gem_prime_import,
+ #endif
+ 	.gem_prime_import_sg_table = rknpu_gem_prime_import_sg_table,
++#if KERNEL_VERSION(6, 6, 0) > LINUX_VERSION_CODE
+ #if KERNEL_VERSION(6, 1, 0) <= LINUX_VERSION_CODE
+ 	.gem_prime_mmap = drm_gem_prime_mmap,
+ #else
+ 	.gem_prime_mmap = rknpu_gem_prime_mmap,
+ #endif
++#endif
++/* Linux 6.6+ exports mmap through drm_gem_object_funcs.mmap. */
+ 	.ioctls = rknpu_ioctls,
+ 	.num_ioctls = ARRAY_SIZE(rknpu_ioctls),
+ 	.fops = &rknpu_drm_driver_fops,
+@@ -901,171 +917,46 @@
+ }
+ #endif
+ 
+-static int rknpu_power_on(struct rknpu_device *rknpu_dev)
+-{
+-	struct device *dev = rknpu_dev->dev;
+-	int ret = -EINVAL;
+-
+-#ifndef FPGA_PLATFORM
+-	if (rknpu_dev->vdd) {
+-		ret = regulator_enable(rknpu_dev->vdd);
+-		if (ret) {
+-			LOG_DEV_ERROR(
+-				dev,
+-				"failed to enable vdd reg for rknpu, ret: %d\n",
+-				ret);
+-			return ret;
+-		}
+-	}
+-
+-	if (rknpu_dev->mem) {
+-		ret = regulator_enable(rknpu_dev->mem);
+-		if (ret) {
+-			LOG_DEV_ERROR(
+-				dev,
+-				"failed to enable mem reg for rknpu, ret: %d\n",
+-				ret);
+-			return ret;
+-		}
+-	}
+-#endif
+-
+-	ret = clk_bulk_prepare_enable(rknpu_dev->num_clks, rknpu_dev->clks);
+-	if (ret) {
+-		LOG_DEV_ERROR(dev, "failed to enable clk for rknpu, ret: %d\n",
+-			      ret);
+-		return ret;
+-	}
+-
+-#ifndef FPGA_PLATFORM
+-	rknpu_devfreq_lock(rknpu_dev);
+-#endif
+-
+-	if (rknpu_dev->multiple_domains) {
+-		if (rknpu_dev->genpd_dev_npu0) {
+-#if KERNEL_VERSION(5, 5, 0) < LINUX_VERSION_CODE
+-			ret = pm_runtime_resume_and_get(
+-				rknpu_dev->genpd_dev_npu0);
+-#else
+-			ret = pm_runtime_get_sync(rknpu_dev->genpd_dev_npu0);
+-#endif
+-			if (ret < 0) {
+-				LOG_DEV_ERROR(
+-					dev,
+-					"failed to get pm runtime for npu0, ret: %d\n",
+-					ret);
+-				goto out;
+-			}
+-		}
+-		if (rknpu_dev->genpd_dev_npu1) {
+-#if KERNEL_VERSION(5, 5, 0) < LINUX_VERSION_CODE
+-			ret = pm_runtime_resume_and_get(
+-				rknpu_dev->genpd_dev_npu1);
+-#else
+-			ret = pm_runtime_get_sync(rknpu_dev->genpd_dev_npu1);
+-#endif
+-			if (ret < 0) {
+-				LOG_DEV_ERROR(
+-					dev,
+-					"failed to get pm runtime for npu1, ret: %d\n",
+-					ret);
+-				goto out;
+-			}
+-		}
+-		if (rknpu_dev->genpd_dev_npu2) {
+-#if KERNEL_VERSION(5, 5, 0) < LINUX_VERSION_CODE
+-			ret = pm_runtime_resume_and_get(
+-				rknpu_dev->genpd_dev_npu2);
+-#else
+-			ret = pm_runtime_get_sync(rknpu_dev->genpd_dev_npu2);
+-#endif
+-			if (ret < 0) {
+-				LOG_DEV_ERROR(
+-					dev,
+-					"failed to get pm runtime for npu2, ret: %d\n",
+-					ret);
+-				goto out;
+-			}
+-		}
+-	}
+-	ret = pm_runtime_get_sync(dev);
+-	if (ret < 0) {
+-		LOG_DEV_ERROR(dev,
+-			      "failed to get pm runtime for rknpu, ret: %d\n",
+-			      ret);
+-	}
+-
+-	if (rknpu_dev->config->state_init != NULL)
+-		rknpu_dev->config->state_init(rknpu_dev);
+-
+-out:
+-#ifndef FPGA_PLATFORM
+-	rknpu_devfreq_unlock(rknpu_dev);
+-#endif
+-
+-	return ret;
+-}
+-
+-static int rknpu_power_off(struct rknpu_device *rknpu_dev)
+-{
+-	struct device *dev = rknpu_dev->dev;
+-
+-#ifndef FPGA_PLATFORM
+-	int ret;
+-	bool val;
+-
+-	rknpu_devfreq_lock(rknpu_dev);
+-#endif
+-
+-	pm_runtime_put_sync(dev);
+-
+-	if (rknpu_dev->multiple_domains) {
+-#ifndef FPGA_PLATFORM
+-		/*
+-		 * Because IOMMU's runtime suspend callback is asynchronous,
+-		 * So it may be executed after the NPU is turned off after PD/CLK/VD,
+-		 * and the runtime suspend callback has a register access.
+-		 * If the PD/VD/CLK is closed, the register access will crash.
+-		 * As a workaround, it's safe to close pd stuff until iommu disabled.
+-		 * If pm runtime framework can handle this issue in the future, remove
+-		 * this.
+-		 */
+-		ret = readx_poll_timeout(rockchip_iommu_is_enabled, dev, val,
+-					 !val, NPU_MMU_DISABLED_POLL_PERIOD_US,
+-					 NPU_MMU_DISABLED_POLL_TIMEOUT_US);
+-		if (ret) {
+-			LOG_DEV_ERROR(dev, "iommu still enabled\n");
+-			pm_runtime_get_sync(dev);
+-			rknpu_devfreq_unlock(rknpu_dev);
+-			return ret;
+-		}
+-#else
+-		if (rknpu_dev->iommu_en)
+-			msleep(20);
+-#endif
+-		if (rknpu_dev->genpd_dev_npu2)
+-			pm_runtime_put_sync(rknpu_dev->genpd_dev_npu2);
+-		if (rknpu_dev->genpd_dev_npu1)
+-			pm_runtime_put_sync(rknpu_dev->genpd_dev_npu1);
+-		if (rknpu_dev->genpd_dev_npu0)
+-			pm_runtime_put_sync(rknpu_dev->genpd_dev_npu0);
+-	}
+-
+-#ifndef FPGA_PLATFORM
+-	rknpu_devfreq_unlock(rknpu_dev);
+-#endif
+-
+-	clk_bulk_disable_unprepare(rknpu_dev->num_clks, rknpu_dev->clks);
+-
+-#ifndef FPGA_PLATFORM
+-	if (rknpu_dev->vdd)
+-		regulator_disable(rknpu_dev->vdd);
+-
+-	if (rknpu_dev->mem)
+-		regulator_disable(rknpu_dev->mem);
+-#endif
+-
+-	return 0;
++static int rknpu_power_on(struct rknpu_device *npu)
++{
++ int ret;
++ /* Mainline IOMMU PM device-links order the NPUTOP supplier. No BSP
++  * private IOMMU-layout or fake paging-enabled checks are used. */
++ if (!npu->vdd)
++  return -EOPNOTSUPP;
++ ret = regulator_enable(npu->vdd);
++ if (ret) return ret;
++ if (npu->mem) {
++  ret = regulator_enable(npu->mem);
++  if (ret) goto vdd_off;
++ }
++ ret = clk_bulk_prepare_enable(npu->num_clks, npu->clks);
++ if (ret) goto mem_off;
++ ret = pm_runtime_resume_and_get(npu->dev);
++ if (ret < 0) goto clocks_off;
++ return 0;
++clocks_off:
++ clk_bulk_disable_unprepare(npu->num_clks, npu->clks);
++mem_off:
++ if (npu->mem) regulator_disable(npu->mem);
++vdd_off:
++ regulator_disable(npu->vdd);
++ return ret;
++}
++
++static int rknpu_power_off(struct rknpu_device *npu)
++{
++ int ret;
++
++ ret = pm_runtime_put_sync_suspend(npu->dev);
++ if (ret < 0) {
++  pm_runtime_resume_and_get(npu->dev);
++  return ret;
++ }
++ clk_bulk_disable_unprepare(npu->num_clks, npu->clks);
++ if (npu->mem) regulator_disable(npu->mem);
++ regulator_disable(npu->vdd);
++ return 0;
+ }
+ 
+ static int rknpu_register_irq(struct platform_device *pdev,
+@@ -1225,7 +1116,7 @@
+ 
+ 	if (of_property_match_string(dev->of_node, "nvmem-cell-names",
+ 				     "cores") >= 0) {
+-		ret = rockchip_nvmem_cell_read_u8(dev->of_node, "cores",
++		ret = nvmem_cell_read_u8(dev, "cores",
+ 						  &invalid_core_mask);
+ 		/* The default valid npu cores for RK3583 are core0 and core1 */
+ 		invalid_core_mask |= RKNPU_CORE2_MASK;
+@@ -1240,15 +1131,116 @@
+ 	return (int)invalid_core_mask;
+ }
+ 
++static void r6s_iommu_group_put(void *data)
++{
++	iommu_group_put(data);
++}
++
++static ssize_t r6s_npu_load_show(struct device *dev,
++			       struct device_attribute *attr, char *buf)
++{
++	struct rknpu_device *npu = dev_get_drvdata(dev);
++	struct r6s_busy_counter counters[3];
++	u64 now, busy[3];
++	unsigned long flags;
++	int i, len;
++	if (!npu || !npu->rk3588_core0_banks) return -ENODATA;
++	spin_lock_irqsave(&npu->irq_lock, flags);
++	now = ktime_get_ns();
++	for (i=0; i<npu->config->num_irqs; i++) {
++		counters[i] = npu->r6s_busy[i];
++		busy[i] = r6s_busy_read(&counters[i], now);
++	}
++	spin_unlock_irqrestore(&npu->irq_lock, flags);
++	len = sysfs_emit(buf, "schema=1 epoch_ns=%llu monotonic_ns=%llu cores=%d metric=job_interval_ns\n",
++		(unsigned long long)npu->r6s_load_epoch_ns, (unsigned long long)now, npu->config->num_irqs);
++	for (i=0; i<npu->config->num_irqs; i++)
++		len += sysfs_emit_at(buf, len, "core=%d busy_ns=%llu active=%u starts=%llu finishes=%llu aborts=%llu\n",
++			i, (unsigned long long)busy[i], counters[i].active,
++			(unsigned long long)counters[i].starts, (unsigned long long)counters[i].finishes,
++			(unsigned long long)counters[i].aborts);
++	return len;
++}
++static DEVICE_ATTR(r6s_npu_load, 0400, r6s_npu_load_show, NULL);
++static struct attribute *r6s_load_attrs[] = { &dev_attr_r6s_npu_load.attr, NULL };
++static const struct attribute_group r6s_load_group = { .attrs = r6s_load_attrs };
++
++/* This port only accepts the sealed R6S RK3588 three-domain topology.
++ * Validate before allocation, mapping registers, or enabling runtime PM. */
++static int r6s_rk3588_power_domains(struct device *dev,
++                                   const struct rknpu_config *config)
++{
++ const char *names[] = { "npu0", "npu1", "npu2" };
++ const u32 ids[] = { RK3588_PD_NPUTOP, RK3588_PD_NPU1, RK3588_PD_NPU2 };
++ struct device_node *provider = NULL;
++ struct of_phandle_args args;
++ const char *name;
++ int i, ret;
++
++ if (!of_machine_is_compatible("friendlyarm,nanopi-r6s") ||
++     !of_device_is_compatible(dev->of_node, "rockchip,rk3588-rknpu") ||
++     config != &rk3588_rknpu_config || config->num_irqs != 3 ||
++     config->core_mask != 0x7)
++  return -EOPNOTSUPP;
++ ret = of_count_phandle_with_args(dev->of_node, "power-domains",
++                                 "#power-domain-cells");
++ if (ret < 0) return ret;
++ if (ret != 3 || of_property_count_strings(dev->of_node,
++                                          "power-domain-names") != 3)
++  return -EINVAL;
++ for (i = 0; i < 3; i++) {
++  ret = of_property_read_string_index(dev->of_node, "power-domain-names",
++                                      i, &name);
++  if (ret || strcmp(name, names[i])) { ret = ret ? ret : -EINVAL; goto out; }
++  ret = of_parse_phandle_with_args(dev->of_node, "power-domains",
++                                   "#power-domain-cells", i, &args);
++  if (ret) goto out;
++  if (args.args_count != 1 || args.args[0] != ids[i] ||
++      !of_device_is_compatible(args.np, "rockchip,rk3588-power-controller") ||
++      (provider && provider != args.np)) {
++   of_node_put(args.np); ret = -EINVAL; goto out;
++  }
++  if (!provider) provider = of_node_get(args.np);
++  of_node_put(args.np);
++ }
++ ret = 0;
++out:
++ of_node_put(provider);
++ return ret;
++}
++
++static int r6s_probe_pm_start(struct device *dev)
++{
++ struct dev_pm_domain_list *domains;
++ int ret = devm_pm_domain_attach_list(dev, NULL, &domains);
++ if (ret != 3) return ret < 0 ? ret : -EINVAL;
++ /* Registered after attach: devres disables PM before detaching suppliers. */
++ return devm_pm_runtime_enable(dev);
++}
++
++/* Probe has no submitted jobs. Drop its one PM reference even when suspend
++ * fails, and balance external clock/regulator enables before devres unwinds
++ * runtime PM and the three supplier links. Do not use the running-job retry
++ * path, which deliberately restores its reference on suspend failure. */
++static int r6s_probe_power_off(struct rknpu_device *npu)
++{
++ int ret = pm_runtime_put_sync_suspend(npu->dev);
++ clk_bulk_disable_unprepare(npu->num_clks, npu->clks);
++ if (npu->mem) regulator_disable(npu->mem);
++ regulator_disable(npu->vdd);
++ return ret < 0 ? ret : 0;
++}
++
+ static int rknpu_probe(struct platform_device *pdev)
+ {
+ 	struct resource *res = NULL;
+ 	struct rknpu_device *rknpu_dev = NULL;
+ 	struct device *dev = &pdev->dev;
+-	struct device *virt_dev = NULL;
++
+ 	const struct of_device_id *match = NULL;
+ 	const struct rknpu_config *config = NULL;
+ 	int ret = -EINVAL, i = 0;
++	bool probe_powered = false, debugger_ready = false;
+ 
+ 	if (!pdev->dev.of_node) {
+ 		LOG_DEV_ERROR(dev, "rknpu device-tree data is missing!\n");
+@@ -1261,30 +1253,22 @@
+ 		return -ENODEV;
+ 	}
+ 
++	config = of_device_get_match_data(dev);
++	if (!config)
++		return -EINVAL;
++	ret = r6s_rk3588_power_domains(dev, config);
++	if (ret) return ret;
++
+ 	rknpu_dev = devm_kzalloc(dev, sizeof(*rknpu_dev), GFP_KERNEL);
+ 	if (!rknpu_dev) {
+ 		LOG_DEV_ERROR(dev, "failed to allocate rknpu device!\n");
+ 		return -ENOMEM;
+ 	}
+ 
+-	config = of_device_get_match_data(dev);
+-	if (!config)
+-		return -EINVAL;
+-
+ 	if (match->data == (void *)&rk3588_rknpu_config) {
+ 		int invalid_core_mask = rknpu_get_invalid_core_mask(dev);
+ 		/* The default valid npu cores for RK3583 are core0 and core1 */
+-		if (invalid_core_mask & RKNPU_CORE2_MASK) {
+-			if ((invalid_core_mask & RKNPU_CORE0_MASK) ||
+-			    (invalid_core_mask & RKNPU_CORE1_MASK)) {
+-				LOG_DEV_ERROR(
+-					dev,
+-					"rknpu core invalid, invalid core mask: %#x\n",
+-					invalid_core_mask);
+-				return -ENODEV;
+-			}
+-			config = &rk3583_rknpu_config;
+-		}
++		if (invalid_core_mask) return -ENODEV;
+ 	}
+ 
+ 	rknpu_dev->config = config;
+@@ -1296,6 +1280,10 @@
+ 		rknpu_dev->iommu_group = iommu_group_get(dev);
+ 		if (!rknpu_dev->iommu_group)
+ 			return -EINVAL;
++		ret = devm_add_action_or_reset(dev, r6s_iommu_group_put,
++					       rknpu_dev->iommu_group);
++		if (ret)
++			return ret;
+ 	} else {
+ 		/* Initialize reserved memory resources */
+ 		ret = of_reserved_mem_device_init(dev);
+@@ -1309,9 +1297,13 @@
+ 	rknpu_dev->bypass_irq_handler = bypass_irq_handler;
+ 	rknpu_dev->bypass_soft_reset = bypass_soft_reset;
+ 
+-	rknpu_reset_get(rknpu_dev);
++	ret = rknpu_reset_get(rknpu_dev);
++	if (ret < 0) return ret;
++	if (config == &rk3588_rknpu_config && ret != 6) return -EINVAL;
+ 
+ 	rknpu_dev->num_clks = devm_clk_bulk_get_all(dev, &rknpu_dev->clks);
++	if (config == &rk3588_rknpu_config && rknpu_dev->num_clks != 8)
++		return rknpu_dev->num_clks < 0 ? rknpu_dev->num_clks : -EINVAL;
+ 	if (rknpu_dev->num_clks < 1) {
+ 		LOG_DEV_ERROR(dev, "failed to get clk source for rknpu\n");
+ #ifndef FPGA_PLATFORM
+@@ -1352,6 +1344,7 @@
+ 	mutex_init(&rknpu_dev->power_lock);
+ 	mutex_init(&rknpu_dev->reset_lock);
+ 	mutex_init(&rknpu_dev->domain_lock);
++	mutex_init(&rknpu_dev->frequency_lock);
+ 	for (i = 0; i < config->num_irqs; i++) {
+ 		INIT_LIST_HEAD(&rknpu_dev->subcore_datas[i].todo_list);
+ 		init_waitqueue_head(&rknpu_dev->subcore_datas[i].job_done_wq);
+@@ -1364,10 +1357,33 @@
+ 			return -ENXIO;
+ 		}
+ 
+-		rknpu_dev->base[i] = devm_ioremap_resource(dev, res);
+-		if (PTR_ERR(rknpu_dev->base[i]) == -EBUSY) {
+-			rknpu_dev->base[i] = devm_ioremap(dev, res->start,
+-							  resource_size(res));
++		/* Every RK3588 task needs CNA and CORE pointer initialization,
++		 * even when only core0 is exposed. Reserve the three upstream 4 KiB
++		 * banks independently, never the IOMMU-containing 64 KiB envelope.
++		 * Any busy/missing bank fails probe; there is no raw mapping retry. */
++		if (config == &rk3588_rknpu_config) {
++			struct resource bank;
++			ret = r6s_rk3588_bank_resource(res, i, R6S_BANK_PC, &bank);
++			if (ret)
++				return dev_err_probe(dev, ret, "invalid RK3588 PC resource\n");
++			rknpu_dev->base[i] = devm_ioremap_resource(dev, &bank);
++			if (IS_ERR(rknpu_dev->base[i]))
++				return PTR_ERR(rknpu_dev->base[i]);
++			ret = r6s_rk3588_bank_resource(res, i, R6S_BANK_CNA, &bank);
++			if (ret)
++				return dev_err_probe(dev, ret, "invalid RK3588 CNA resource\n");
++			rknpu_dev->cna_base[i] = devm_ioremap_resource(dev, &bank);
++			if (IS_ERR(rknpu_dev->cna_base[i]))
++				return PTR_ERR(rknpu_dev->cna_base[i]);
++			ret = r6s_rk3588_bank_resource(res, i, R6S_BANK_CORE, &bank);
++			if (ret)
++				return dev_err_probe(dev, ret, "invalid RK3588 CORE resource\n");
++			rknpu_dev->core_base[i] = devm_ioremap_resource(dev, &bank);
++			if (IS_ERR(rknpu_dev->core_base[i]))
++				return PTR_ERR(rknpu_dev->core_base[i]);
++			rknpu_dev->rk3588_core0_banks = true;
++		} else {
++			rknpu_dev->base[i] = devm_ioremap_resource(dev, res);
+ 		}
+ 
+ 		if (IS_ERR(rknpu_dev->base[i])) {
+@@ -1397,6 +1413,10 @@
+ 		LOG_DEV_WARN(dev, "bypass irq handler!\n");
+ 	}
+ 
++	ret = rknpu_iommu_init_domain(rknpu_dev);
++	if (ret)
++		return ret;
++
+ #ifdef CONFIG_ROCKCHIP_RKNPU_DRM_GEM
+ 	ret = rknpu_drm_probe(rknpu_dev);
+ 	if (ret) {
+@@ -1437,30 +1457,16 @@
+ 
+ 	platform_set_drvdata(pdev, rknpu_dev);
+ 
+-	pm_runtime_enable(dev);
+-
+-	if (of_count_phandle_with_args(dev->of_node, "power-domains",
+-				       "#power-domain-cells") > 1) {
+-		virt_dev = dev_pm_domain_attach_by_name(dev, "npu0");
+-		if (!IS_ERR(virt_dev))
+-			rknpu_dev->genpd_dev_npu0 = virt_dev;
+-		virt_dev = dev_pm_domain_attach_by_name(dev, "npu1");
+-		if (!IS_ERR(virt_dev))
+-			rknpu_dev->genpd_dev_npu1 = virt_dev;
+-		if (config->num_irqs > 2) {
+-			virt_dev = dev_pm_domain_attach_by_name(dev, "npu2");
+-			if (!IS_ERR(virt_dev))
+-				rknpu_dev->genpd_dev_npu2 = virt_dev;
+-		}
+-		rknpu_dev->multiple_domains = true;
+-	}
+-
++	ret = r6s_probe_pm_start(dev);
++	if (ret) goto err_remove_drv;
++	rknpu_dev->multiple_domains = true;
+ 	ret = rknpu_power_on(rknpu_dev);
+-	if (ret)
+-		goto err_remove_drv;
++	if (ret) goto err_remove_drv;
++	probe_powered = true;
+ 
+ #ifndef FPGA_PLATFORM
+-	rknpu_devfreq_init(rknpu_dev);
++	ret = rknpu_devfreq_init(rknpu_dev);
++	if (ret) goto err_power_off;
+ #endif
+ 
+ 	// set default power put delay to 3s
+@@ -1494,20 +1500,33 @@
+ 			rknpu_dev->config->cache_sgt_init(rknpu_dev);
+ 	}
+ 
+-	if (rknpu_dev->iommu_en)
+-		rknpu_iommu_init_domain(rknpu_dev);
+-
+-	rknpu_power_off(rknpu_dev);
++
++	ret = r6s_probe_power_off(rknpu_dev);
++	probe_powered = false;
++	if (ret) goto err_remove_wq;
++	for (i = 0; i < 4; ++i)
++		atomic_set(&rknpu_dev->r6s_diag_bo_classes[i], 0);
++	for (i = 0; i < 2; ++i)
++		atomic_set(&rknpu_dev->r6s_diag_sync_classes[i], 0);
++	atomic_set(&rknpu_dev->r6s_diag_claimed, 0);
++	atomic_set(&rknpu_dev->r6s_diag_pm_logged, 0);
+ 	atomic_set(&rknpu_dev->power_refcount, 0);
+ 	atomic_set(&rknpu_dev->cmdline_power_refcount, 0);
+ 	atomic_set(&rknpu_dev->iommu_domain_refcount, 0);
+ 
+ 	rknpu_debugger_init(rknpu_dev);
+-	rknpu_init_timer(rknpu_dev);
++	debugger_ready = true;
++	rknpu_dev->r6s_load_epoch_ns = ktime_get_ns();
++	if (!rknpu_dev->rk3588_core0_banks) rknpu_init_timer(rknpu_dev);
++	if (rknpu_dev->rk3588_core0_banks) {
++		ret = devm_device_add_group(dev, &r6s_load_group);
++		if (ret) goto err_remove_wq;
++	}
+ 
+ 	return 0;
+ 
+ err_remove_wq:
++	if (debugger_ready) rknpu_debugger_remove(rknpu_dev);
+ 	destroy_workqueue(rknpu_dev->power_off_wq);
+ 
+ err_devfreq_remove:
+@@ -1515,6 +1534,12 @@
+ 	rknpu_devfreq_remove(rknpu_dev);
+ #endif
+ 
++err_power_off:
++	if (probe_powered) {
++		int off_ret = r6s_probe_power_off(rknpu_dev);
++		if (off_ret) LOG_DEV_ERROR(dev, "probe power cleanup failed: %d\n", off_ret);
++	}
++
+ err_remove_drv:
+ #ifdef CONFIG_ROCKCHIP_RKNPU_DRM_GEM
+ 	rknpu_drm_remove(rknpu_dev);
+@@ -1526,7 +1551,7 @@
+ 	return ret;
+ }
+ 
+-static int rknpu_remove(struct platform_device *pdev)
++static void rknpu_remove(struct platform_device *pdev)
+ {
+ 	struct rknpu_device *rknpu_dev = platform_get_drvdata(pdev);
+ 	int i = 0;
+@@ -1535,7 +1560,7 @@
+ 	destroy_workqueue(rknpu_dev->power_off_wq);
+ 
+ 	rknpu_debugger_remove(rknpu_dev);
+-	rknpu_cancel_timer(rknpu_dev);
++	if (!rknpu_dev->rk3588_core0_banks) rknpu_cancel_timer(rknpu_dev);
+ 
+ 	if (rknpu_dev->config->cache_sgt_init != NULL) {
+ 		for (i = 0; i < RKNPU_CACHE_SG_TABLE_NUM; i++) {
+@@ -1557,7 +1582,6 @@
+ 
+ 	if (rknpu_dev->iommu_en) {
+ 		rknpu_iommu_free_domains(rknpu_dev);
+-		iommu_group_put(rknpu_dev->iommu_group);
+ 	}
+ 
+ #ifdef CONFIG_ROCKCHIP_RKNPU_DRM_GEM
+@@ -1576,18 +1600,9 @@
+ 		rknpu_power_off(rknpu_dev);
+ 	mutex_unlock(&rknpu_dev->power_lock);
+ 
+-	if (rknpu_dev->multiple_domains) {
+-		if (rknpu_dev->genpd_dev_npu0)
+-			dev_pm_domain_detach(rknpu_dev->genpd_dev_npu0, true);
+-		if (rknpu_dev->genpd_dev_npu1)
+-			dev_pm_domain_detach(rknpu_dev->genpd_dev_npu1, true);
+-		if (rknpu_dev->genpd_dev_npu2)
+-			dev_pm_domain_detach(rknpu_dev->genpd_dev_npu2, true);
+-	}
+-
+-	pm_runtime_disable(&pdev->dev);
+-
+-	return 0;
++
++	/* devm_pm_runtime_enable() disables PM before supplier detach. */
++
+ }
+ 
+ #ifndef FPGA_PLATFORM
+--- a/rknpu_gem.c
++++ b/rknpu_gem.c
+@@ -1,4 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0
++/* R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md. */
+ /*
+  * Copyright (C) Rockchip Electronics Co.Ltd
+  * Author: Felix Zeng <felix.zeng@rock-chips.com>
+@@ -11,12 +12,13 @@
+ #include <drm/drm_drv.h>
+ 
+ #include <linux/delay.h>
++#include <linux/capability.h>
+ #include <linux/shmem_fs.h>
+ #include <linux/dma-buf.h>
+ #include <linux/iommu.h>
+ #include <linux/pfn_t.h>
+ #include <linux/version.h>
+-#include <linux/version_compat_defs.h>
++#include <linux/vmalloc.h>
+ #include <asm/cacheflush.h>
+ 
+ #if KERNEL_VERSION(5, 10, 0) <= LINUX_VERSION_CODE
+@@ -27,6 +29,8 @@
+ #include "rknpu_ioctl.h"
+ #include "rknpu_gem.h"
+ #include "rknpu_iommu.h"
++#include "rknpu_job.h"
++#include "r6s_diag_flags.h"
+ 
+ #define RKNPU_GEM_ALLOC_FROM_PAGES 1
+ 
+@@ -419,260 +423,17 @@
+ 	kfree(rknpu_obj);
+ }
+ 
+-static int rknpu_iommu_map_with_cache_sgt(struct iommu_domain *domain,
+-					  struct rknpu_device *rknpu_dev,
+-					  struct rknpu_gem_object *rknpu_obj,
+-					  unsigned long cache_size)
+-{
+-	phys_addr_t cache_start = 0;
+-	unsigned long iova_start = rknpu_obj->iova_start;
+-	struct scatterlist *s = NULL;
+-	unsigned long length = cache_size;
+-	unsigned long size = 0;
+-	int i = 0;
+-	int ret = 0;
+-	int index = 0;
+-
+-	switch (rknpu_obj->core_mask) {
+-	case RKNPU_CORE0_MASK:
+-		index = 0;
+-		break;
+-	case RKNPU_CORE1_MASK:
+-		index = 1;
+-		break;
+-	default:
+-		break;
+-	}
+-
+-	for_each_sgtable_sg(rknpu_dev->cache_sgt[index], s, i) {
+-		cache_start = rknpu_dev->nbuf_start + s->offset;
+-		size = length < s->length ? length : s->length;
+-		ret = iommu_map(domain, iova_start, cache_start, size,
+-				IOMMU_READ | IOMMU_WRITE);
+-		if (ret) {
+-			LOG_ERROR("cache iommu_map error: %d\n", ret);
+-			return ret;
+-		}
+-		length -= size;
+-		iova_start += size;
+-
+-		if (length == 0)
+-			break;
+-	}
+-
+-	return ret;
+-}
+-
+-static int rknpu_gem_alloc_buf_with_cache(struct rknpu_gem_object *rknpu_obj,
+-					  enum rknpu_cache_type cache_type)
+-{
+-	struct drm_device *drm = rknpu_obj->base.dev;
+-	struct rknpu_device *rknpu_dev = drm->dev_private;
+-	struct iommu_domain *domain = NULL;
+-	struct rknpu_iommu_dma_cookie *cookie = NULL;
+-	struct iova_domain *iovad = NULL;
+-	struct scatterlist *s = NULL;
+-	unsigned long length = 0;
+-	unsigned long size = 0;
+-	unsigned long offset = 0;
+-	int i = 0;
+-	int ret = -EINVAL;
+-	phys_addr_t cache_start = 0;
+-	unsigned long cache_offset = 0;
+-	unsigned long cache_size = 0;
+-	bool iova_aligned =
+-		!(rknpu_obj->flags & RKNPU_MEM_IOMMU_LIMIT_IOVA_ALIGNMENT);
+-
+-	switch (cache_type) {
+-	case RKNPU_CACHE_SRAM:
+-		cache_start = rknpu_dev->sram_start;
+-		cache_offset = rknpu_obj->sram_obj->range_start *
+-			       rknpu_dev->sram_mm->chunk_size;
+-		cache_size = rknpu_obj->sram_size;
+-		break;
+-	case RKNPU_CACHE_NBUF:
+-		cache_start = rknpu_dev->nbuf_start;
+-		cache_offset = 0;
+-		cache_size = rknpu_obj->nbuf_size;
+-		break;
+-	default:
+-		LOG_ERROR("Unknown rknpu_cache_type: %d", cache_type);
+-		return -EINVAL;
+-	}
+-
+-	/* iova map to cache */
+-	domain = iommu_get_domain_for_dev(rknpu_dev->dev);
+-	if (!domain) {
+-		LOG_ERROR("failed to get iommu domain!");
+-		return -EINVAL;
+-	}
+-
+-	cookie = (void *)domain->iova_cookie;
+-	iovad = &cookie->iovad;
+-	rknpu_obj->iova_size = iova_align(iovad, cache_size + rknpu_obj->size);
+-	rknpu_obj->iova_start = rknpu_iommu_dma_alloc_iova(
+-		domain, rknpu_obj->iova_size, dma_get_mask(drm->dev), drm->dev,
+-		iova_aligned);
+-	if (!rknpu_obj->iova_start) {
+-		LOG_ERROR("iommu_dma_alloc_iova failed\n");
+-		return -ENOMEM;
+-	}
+-
+-	LOG_INFO("allocate iova start: %pad, size: %lu\n",
+-		 &rknpu_obj->iova_start, rknpu_obj->iova_size);
+-
+-	/*
+-	 * Overview cache + DDR map to IOVA
+-	 * --------
+-	 * cache_size:
+-	 *   - allocate from CACHE, this size value has been page-aligned
+-	 * size: rknpu_obj->size
+-	 *   - allocate from DDR pages, this size value has been page-aligned
+-	 * iova_size: rknpu_obj->iova_size
+-	 *   - from iova_align(cache_size + size)
+-	 *   - it may be larger than the (cache_size + size), and the larger part is not mapped
+-	 * --------
+-	 *
+-	 * |<- cache_size ->|      |<- - - - size - - - ->|
+-	 * +---------------+      +----------------------+
+-	 * |     CACHE      |      |         DDR          |
+-	 * +---------------+      +----------------------+
+-	 *         |                    |
+-	 * |       V       |            V          |
+-	 * +---------------------------------------+
+-	 * |             IOVA range                |
+-	 * +---------------------------------------+
+-	 * |<- - - - - - - iova_size - - - - - - ->|
+-	 *
+-	 */
+-	if (!rknpu_obj->cache_with_sgt)
+-		ret = iommu_map(domain, rknpu_obj->iova_start,
+-				cache_start + cache_offset, cache_size,
+-				IOMMU_READ | IOMMU_WRITE);
+-	else
+-		ret = rknpu_iommu_map_with_cache_sgt(domain, rknpu_dev,
+-						     rknpu_obj, cache_size);
+-
+-	if (ret) {
+-		LOG_ERROR("cache iommu_map error: %d\n", ret);
+-		goto free_iova;
+-	}
+-
+-	rknpu_obj->dma_addr = rknpu_obj->iova_start;
+-
+-	if (rknpu_obj->size == 0) {
+-		LOG_INFO("allocate cache size: %lu\n", cache_size);
+-		return 0;
+-	}
+-
+-	rknpu_obj->pages = drm_gem_get_pages(&rknpu_obj->base);
+-	if (IS_ERR(rknpu_obj->pages)) {
+-		ret = PTR_ERR(rknpu_obj->pages);
+-		LOG_ERROR("failed to get pages: %d\n", ret);
+-		goto cache_unmap;
+-	}
+-
+-	rknpu_obj->num_pages = rknpu_obj->size >> PAGE_SHIFT;
+-
+-#if KERNEL_VERSION(5, 10, 0) <= LINUX_VERSION_CODE
+-	rknpu_obj->sgt = drm_prime_pages_to_sg(drm, rknpu_obj->pages,
+-					       rknpu_obj->num_pages);
+-#else
+-	rknpu_obj->sgt =
+-		drm_prime_pages_to_sg(rknpu_obj->pages, rknpu_obj->num_pages);
+-#endif
+-	if (IS_ERR(rknpu_obj->sgt)) {
+-		ret = PTR_ERR(rknpu_obj->sgt);
+-		LOG_ERROR("failed to allocate sgt: %d\n", ret);
+-		goto put_pages;
+-	}
+-
+-	length = rknpu_obj->size;
+-	offset = rknpu_obj->iova_start + cache_size;
+-
+-	for_each_sg(rknpu_obj->sgt->sgl, s, rknpu_obj->sgt->nents, i) {
+-		size = (length < s->length) ? length : s->length;
+-
+-		ret = iommu_map(domain, offset, sg_phys(s), size,
+-				IOMMU_READ | IOMMU_WRITE);
+-		if (ret) {
+-			LOG_ERROR("ddr iommu_map error: %d\n", ret);
+-			goto sgl_unmap;
+-		}
+-
+-		length -= size;
+-		offset += size;
+-
+-		if (length == 0)
+-			break;
+-	}
+-
+-	LOG_INFO("allocate size: %lu with cache size: %lu\n", rknpu_obj->size,
+-		 cache_size);
+-
+-	return 0;
+-
+-sgl_unmap:
+-	iommu_unmap(domain, rknpu_obj->iova_start + cache_size,
+-		    rknpu_obj->size - length);
+-	sg_free_table(rknpu_obj->sgt);
+-	kfree(rknpu_obj->sgt);
+-
+-put_pages:
+-	drm_gem_put_pages(&rknpu_obj->base, rknpu_obj->pages, false, false);
+-
+-cache_unmap:
+-	iommu_unmap(domain, rknpu_obj->iova_start, cache_size);
+-
+-free_iova:
+-	rknpu_iommu_dma_free_iova((void *)domain->iova_cookie,
+-				  rknpu_obj->iova_start, rknpu_obj->iova_size,
+-				  iova_aligned);
+-
+-	return ret;
+-}
+-
+-static void rknpu_gem_free_buf_with_cache(struct rknpu_gem_object *rknpu_obj,
+-					  enum rknpu_cache_type cache_type)
+-{
+-	struct drm_device *drm = rknpu_obj->base.dev;
+-	struct rknpu_device *rknpu_dev = drm->dev_private;
+-	struct iommu_domain *domain = NULL;
+-	unsigned long cache_size = 0;
+-	bool iova_aligned =
+-		!(rknpu_obj->flags & RKNPU_MEM_IOMMU_LIMIT_IOVA_ALIGNMENT);
+-
+-	switch (cache_type) {
+-	case RKNPU_CACHE_SRAM:
+-		cache_size = rknpu_obj->sram_size;
+-		break;
+-	case RKNPU_CACHE_NBUF:
+-		cache_size = rknpu_obj->nbuf_size;
+-		break;
+-	default:
+-		LOG_ERROR("Unknown rknpu_cache_type: %d", cache_type);
+-		return;
+-	}
+-
+-	domain = iommu_get_domain_for_dev(rknpu_dev->dev);
+-	if (domain) {
+-		iommu_unmap(domain, rknpu_obj->iova_start, cache_size);
+-		if (rknpu_obj->size > 0)
+-			iommu_unmap(domain, rknpu_obj->iova_start + cache_size,
+-				    rknpu_obj->size);
+-		rknpu_iommu_dma_free_iova((void *)domain->iova_cookie,
+-					  rknpu_obj->iova_start,
+-					  rknpu_obj->iova_size, iova_aligned);
+-	}
+-
+-	if (rknpu_obj->pages)
+-		drm_gem_put_pages(&rknpu_obj->base, rknpu_obj->pages, true,
+-				  true);
+-
+-	if (rknpu_obj->sgt != NULL) {
+-		sg_free_table(rknpu_obj->sgt);
+-		kfree(rknpu_obj->sgt);
+-	}
++/* Mainline port intentionally excludes BSP SRAM/NBUF IOVA-cookie access.
++ * Unsupported cache requests are rejected before any object is allocated. */
++static int rknpu_gem_alloc_buf_with_cache(struct rknpu_gem_object *obj,
++                                        enum rknpu_cache_type type)
++{
++ return -EOPNOTSUPP;
++}
++static void rknpu_gem_free_buf_with_cache(struct rknpu_gem_object *obj,
++                                         enum rknpu_cache_type type)
++{
++ WARN_ON_ONCE(obj->sram_size || obj->nbuf_size);
+ }
+ 
+ struct rknpu_gem_object *
+@@ -684,6 +445,9 @@
+ 	struct rknpu_gem_object *rknpu_obj = NULL;
+ 	size_t remain_ddr_size = 0;
+ 	int ret = -EINVAL;
++
++	if (flags & (RKNPU_MEM_TRY_ALLOC_SRAM | RKNPU_MEM_TRY_ALLOC_NBUF | RKNPU_MEM_SECURE))
++		return ERR_PTR(-EOPNOTSUPP);
+ 
+ 	if (!size) {
+ 		LOG_DEV_ERROR(drm->dev, "invalid buffer size: %lu\n", size);
+@@ -795,6 +559,12 @@
+ 	}
+ 
+ 	rknpu_iommu_domain_put(rknpu_dev);
++
++	/* One-job diagnostics count flags only, never BO bytes/addresses. */
++	if (r6s_diag_once && rknpu_dev->rk3588_core0_banks &&
++	    !atomic_read(&rknpu_dev->r6s_diag_claimed))
++		atomic_inc(&rknpu_dev->r6s_diag_bo_classes[
++			r6s_diag_bo_class(rknpu_obj->flags)]);
+ 
+ 	LOG_DEBUG(
+ 		"created dma addr: %pad, cookie: %p, ddr size: %lu, sram size: %lu, nbuf size: %lu, attrs: %#lx, flags: %#x, iommu domain id: %d\n",
+@@ -1194,6 +964,9 @@
+ 	unsigned int flags = 0;
+ 	int ret = -EINVAL;
+ 
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
+ 	/*
+ 	 * allocate memory to be used for framebuffer.
+ 	 * - this callback would be called by user application
+@@ -1690,6 +1463,12 @@
+ 		return -EINVAL;
+ 	}
+ 
++	/* Counter only; original flags, allocation and cache sync are unchanged. */
++	if (r6s_diag_once && rknpu_dev->rk3588_core0_banks &&
++	    !atomic_read(&rknpu_dev->r6s_diag_claimed))
++		atomic_inc(&rknpu_dev->r6s_diag_sync_classes[
++			!!(rknpu_obj->flags & RKNPU_MEM_NON_CONTIGUOUS)]);
++
+ 	if (!(rknpu_obj->flags & RKNPU_MEM_NON_CONTIGUOUS)) {
+ 		if (args->flags & RKNPU_MEM_SYNC_TO_DEVICE) {
+ 			dma_sync_single_range_for_device(
+--- a/rknpu_job.c
++++ b/rknpu_job.c
+@@ -1,4 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0
++/* R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md. */
+ /*
+  * Copyright (C) Rockchip Electronics Co.Ltd
+  * Author: Felix Zeng <felix.zeng@rock-chips.com>
+@@ -8,6 +9,8 @@
+ #include <linux/delay.h>
+ #include <linux/sync_file.h>
+ #include <linux/io.h>
++#include <linux/moduleparam.h>
++#include <linux/pm_runtime.h>
+ 
+ #include "rknpu_ioctl.h"
+ #include "rknpu_drv.h"
+@@ -17,12 +20,69 @@
+ #include "rknpu_mem.h"
+ #include "rknpu_iommu.h"
+ #include "rknpu_job.h"
++#include "r6s_diag.h"
++#include "r6s_task_range.h"
+ 
+ #define _REG_READ(base, offset) readl(base + (offset))
+ #define _REG_WRITE(base, value, offset) writel(value, base + (offset))
+ 
+ #define REG_READ(offset) _REG_READ(rknpu_core_base, offset)
+ #define REG_WRITE(value, offset) _REG_WRITE(rknpu_core_base, value, offset)
++
++
++/* Disabled unless an owner explicitly enables the read-only load parameter.
++ * One selected core0 job, at most three snapshots; no scheduler/IRQ decision.
++ * PM has one additional delayed-off report, with no new timer or PM request. */
++bool r6s_diag_once;
++module_param(r6s_diag_once, bool, 0444);
++MODULE_PARM_DESC(r6s_diag_once, "One bounded core0 metadata/register snapshot job; default off");
++
++static void r6s_diag_select(struct rknpu_job *job, int core_index,
++                           int selected_start, int selected_number)
++{
++    struct rknpu_device *d = job->rknpu_dev;
++    struct rknpu_submit *a = job->args;
++    if (!r6s_diag_once || core_index != 0 || !r6s_diag_can_read(d) ||
++        atomic_cmpxchg(&d->r6s_diag_claimed, 0, 1) != 0)
++        return;
++    job->r6s_diag_selected = true;
++    atomic_set(&job->r6s_diag_stages, 0);
++    pr_info("R6S_NPU_DIAG task global=%u/%u sub0=%u/%u selected=%d/%d flags=%#x cores=%u mask=%#x task_BO_flags=%#x BO_classes=%d/%d/%d/%d sync_contig_SG=%d/%d first_cfg=%u last_cfg=%u first_irq=%#x last_irq=%#x cmd_high32=%u base_high32=%u\n",
++        a->task_start, a->task_number, a->subcore_task[0].task_start,
++        a->subcore_task[0].task_number, selected_start, selected_number,
++        a->flags, job->use_core_num, a->core_mask,
++        ((struct rknpu_gem_object *)(uintptr_t)a->task_obj_addr)->flags,
++        atomic_read(&d->r6s_diag_bo_classes[0]),
++        atomic_read(&d->r6s_diag_bo_classes[1]),
++        atomic_read(&d->r6s_diag_bo_classes[2]),
++        atomic_read(&d->r6s_diag_bo_classes[3]),
++        atomic_read(&d->r6s_diag_sync_classes[0]),
++        atomic_read(&d->r6s_diag_sync_classes[1]),
++        job->first_task->regcfg_amount, job->last_task->regcfg_amount,
++        job->first_task->int_mask, job->last_task->int_mask,
++        !!(job->first_task->regcmd_addr >> 32), !!(a->task_base_addr >> 32));
++}
++
++static void r6s_diag_job_snapshot(struct rknpu_job *job, unsigned int stage)
++{
++    struct rknpu_device *d = job->rknpu_dev;
++    struct r6s_diag_snapshot s;
++    unsigned int bit;
++    if (!r6s_diag_once || !job->r6s_diag_selected || stage > 2)
++        return;
++    bit = 1U << stage;
++    if (atomic_fetch_or(bit, &job->r6s_diag_stages) & bit)
++        return;
++    if (!r6s_diag_read(d, &s)) {
++        pr_info("R6S_NPU_DIAG snapshot=%u skipped unavailable/suspended banks\n", stage);
++        return;
++    }
++    pr_info("R6S_NPU_DIAG snapshot=%u pc_mask=%#x status=%#x raw=%#x task=%#x cna_status=%#x cna_pointer=%#x core_status=%#x core_pointer=%#x refs=%d active=%u pending_off=%u\n",
++        stage, s.pc_mask, s.pc_status, s.pc_raw, s.pc_task,
++        s.cna_status, s.cna_pointer, s.core_status, s.core_pointer,
++        atomic_read(&d->power_refcount), !!pm_runtime_active(d->dev),
++        !!delayed_work_pending(&d->power_off_work));
++}
+ 
+ static int rknpu_wait_core_index(int core_mask)
+ {
+@@ -68,6 +128,55 @@
+ 	return core_mask;
+ }
+ 
++/* The RK3588 core0 port still receives the vendor subcore table.
++ * Validate before queueing, dereferencing a task or writing any MMIO. */
++static int r6s_rk3588_job_task_range(struct rknpu_job *job, int core_index,
++                                  struct r6s_task_range *range)
++{
++    struct rknpu_device *dev;
++    u64 table_bytes;
++#ifdef CONFIG_ROCKCHIP_RKNPU_DRM_GEM
++    struct rknpu_gem_object *task_obj;
++#else
++    struct rknpu_mem_object *task_obj;
++#endif
++
++    if (!job || !job->rknpu_dev || !job->args || !range)
++        return -EINVAL;
++    dev = job->rknpu_dev;
++    if (!dev->rk3588_core0_banks || !dev->config)
++        return -EINVAL;
++#ifdef CONFIG_ROCKCHIP_RKNPU_DRM_GEM
++    task_obj = (struct rknpu_gem_object *)(uintptr_t)job->args->task_obj_addr;
++    if (!task_obj)
++        return -EINVAL;
++    table_bytes = min_t(u64, task_obj->base.size, task_obj->size);
++#else
++    task_obj = (struct rknpu_mem_object *)(uintptr_t)job->args->task_obj_addr;
++    if (!task_obj)
++        return -EINVAL;
++    table_bytes = task_obj->size;
++#endif
++    return r6s_rk3588_task_range(job->args, table_bytes, !!task_obj->kv_addr,
++                              core_index, job->use_core_num,
++                              dev->config->num_irqs, dev->config->core_mask,
++                              dev->config->max_submit_number, range);
++}
++
++static int r6s_rk3588_job_task_chunk(struct rknpu_job *job, int core_index,
++                                  struct r6s_task_range *chunk)
++{
++    struct r6s_task_range range;
++    int ret = r6s_rk3588_job_task_range(job, core_index, &range);
++
++    if (ret)
++        return ret;
++    return r6s_task_range_chunk(&range,
++                               atomic_read(&job->submit_count[core_index]),
++                               job->rknpu_dev->config->max_submit_number,
++                               chunk);
++}
++
+ static int rknpu_get_task_number(struct rknpu_job *job, int core_index)
+ {
+ 	struct rknpu_device *rknpu_dev = job->rknpu_dev;
+@@ -76,6 +185,14 @@
+ 	if (core_index >= RKNPU_MAX_CORES || core_index < 0) {
+ 		LOG_ERROR("invalid rknpu core index: %d", core_index);
+ 		return 0;
++	}
++
++	if (rknpu_dev->rk3588_core0_banks) {
++		struct r6s_task_range range;
++
++		if (r6s_rk3588_job_task_range(job, core_index, &range))
++			return 0;
++		return range.number;
+ 	}
+ 
+ 	if (rknpu_dev->config->num_irqs > 1) {
+@@ -269,6 +386,20 @@
+ 	return 0;
+ }
+ 
++/* Restores RK3588 S_POINTER initialization independently of IRQ count.
++ * Other SoCs retain their existing path. No access derives from PC+0x1004. */
++static inline int r6s_rk3588_pointer_init(struct rknpu_device *dev, int core)
++{
++	if (!dev->rk3588_core0_banks)
++		return 0;
++	if (core < 0 || core >= dev->config->num_irqs ||
++		!dev->cna_base[core] || !dev->core_base[core])
++		return -EINVAL;
++	writel(0xe + 0x10000000 * core, dev->cna_base[core] + 0x4);
++	writel(0xe + 0x10000000 * core, dev->core_base[core] + 0x4);
++	return 0;
++}
++
+ static inline int rknpu_job_subcore_commit_pc(struct rknpu_job *job,
+ 					      int core_index)
+ {
+@@ -285,7 +416,7 @@
+ 	struct rknpu_task *task_base = NULL;
+ 	struct rknpu_task *first_task = NULL;
+ 	struct rknpu_task *last_task = NULL;
+-	void __iomem *rknpu_core_base = rknpu_dev->base[core_index];
++	void __iomem *rknpu_core_base;
+ 	int task_start = args->task_start;
+ 	int task_end;
+ 	int task_number = args->task_number;
+@@ -293,7 +424,7 @@
+ 	int pc_data_amount_scale = rknpu_dev->config->pc_data_amount_scale;
+ 	int pc_task_number_bits = rknpu_dev->config->pc_task_number_bits;
+ 	int i = 0;
+-	int submit_index = atomic_read(&job->submit_count[core_index]);
++	int submit_index;
+ 	int max_submit_number = rknpu_dev->config->max_submit_number;
+ 	unsigned long flags;
+ 
+@@ -302,7 +433,23 @@
+ 		return job->ret;
+ 	}
+ 
+-	if (rknpu_dev->config->num_irqs > 1) {
++	if (rknpu_dev->rk3588_core0_banks) {
++		struct r6s_task_range chunk;
++
++		job->ret = r6s_rk3588_job_task_chunk(job, core_index, &chunk);
++		if (job->ret)
++			return job->ret;
++		task_start = chunk.start;
++		task_number = chunk.number;
++	}
++	rknpu_core_base = rknpu_dev->base[core_index];
++	submit_index = atomic_read(&job->submit_count[core_index]);
++
++	job->ret = r6s_rk3588_pointer_init(rknpu_dev, core_index);
++	if (job->ret)
++		return job->ret;
++
++	if (!rknpu_dev->rk3588_core0_banks && rknpu_dev->config->num_irqs > 1) {
+ 		for (i = 0; i < rknpu_dev->config->num_irqs; i++) {
+ 			if (i == core_index) {
+ 				REG_WRITE((0xe + 0x10000000 * i), 0x1004);
+@@ -330,10 +477,12 @@
+ 		}
+ 	}
+ 
+-	task_start = task_start + submit_index * max_submit_number;
+-	task_number = task_number - submit_index * max_submit_number;
+-	task_number = task_number > max_submit_number ? max_submit_number :
+-							task_number;
++	if (!rknpu_dev->rk3588_core0_banks) {
++		task_start = task_start + submit_index * max_submit_number;
++		task_number = task_number - submit_index * max_submit_number;
++		task_number = task_number > max_submit_number ? max_submit_number :
++								task_number;
++	}
+ 	task_end = task_start + task_number - 1;
+ 
+ 	task_base = task_obj->kv_addr;
+@@ -368,8 +517,16 @@
+ 	job->last_task = last_task;
+ 	job->int_mask[core_index] = last_task->int_mask;
+ 
++	r6s_diag_select(job, core_index, task_start, task_number);
++	r6s_diag_job_snapshot(job, 0);
++	if (rknpu_dev->rk3588_core0_banks) {
++		spin_lock_irqsave(&rknpu_dev->irq_lock, flags);
++		r6s_busy_begin(&rknpu_dev->r6s_busy[core_index], ktime_get_ns());
++		spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
++	}
+ 	REG_WRITE(0x1, RKNPU_OFFSET_PC_OP_EN);
+ 	REG_WRITE(0x0, RKNPU_OFFSET_PC_OP_EN);
++	r6s_diag_job_snapshot(job, 1);
+ 
+ 	return 0;
+ }
+@@ -379,8 +536,17 @@
+ {
+ 	struct rknpu_device *rknpu_dev = job->rknpu_dev;
+ 	struct rknpu_submit *args = job->args;
+-	void __iomem *rknpu_core_base = rknpu_dev->base[core_index];
++	void __iomem *rknpu_core_base;
+ 	unsigned long flags;
++
++	if (rknpu_dev->rk3588_core0_banks) {
++		struct r6s_task_range chunk;
++
++		job->ret = r6s_rk3588_job_task_chunk(job, core_index, &chunk);
++		if (job->ret)
++			return job->ret;
++	}
++	rknpu_core_base = rknpu_dev->base[core_index];
+ 
+ 	// switch to slave mode
+ 	if (rknpu_dev->config->pc_dma_ctrl) {
+@@ -465,6 +631,11 @@
+ 	unsigned long flags;
+ 	int max_submit_number = rknpu_dev->config->max_submit_number;
+ 
++	if (rknpu_dev->rk3588_core0_banks) {
++		spin_lock_irqsave(&rknpu_dev->irq_lock, flags);
++		r6s_busy_end(&rknpu_dev->r6s_busy[core_index], ktime_get_ns(), ret != 0);
++		spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
++	}
+ 	if (atomic_inc_return(&job->submit_count[core_index]) <
+ 	    (rknpu_get_task_number(job, core_index) + max_submit_number - 1) /
+ 		    max_submit_number) {
+@@ -543,6 +714,20 @@
+ 	}
+ 
+ 	spin_lock_irqsave(&rknpu_dev->irq_lock, flags);
++	if (rknpu_dev->rk3588_core0_banks) {
++		for (i = 0; i < rknpu_dev->config->num_irqs; i++) {
++			int count;
++			s64 queued;
++			if (!(job->args->core_mask & rknpu_core_mask(i))) continue;
++			count = rknpu_get_task_number(job, i);
++			queued = rknpu_dev->subcore_datas[i].task_num;
++			if (count <= 0 || queued < 0 || count > S64_MAX - queued) {
++				job->ret = -EOVERFLOW;
++				spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
++				return;
++			}
++		}
++	}
+ 	for (i = 0; i < rknpu_dev->config->num_irqs; i++) {
+ 		if (job->args->core_mask & rknpu_core_mask(i)) {
+ 			subcore_data = &rknpu_dev->subcore_datas[i];
+@@ -574,6 +759,8 @@
+ 		if (job->args->core_mask & rknpu_core_mask(i)) {
+ 			subcore_data = &rknpu_dev->subcore_datas[i];
+ 			if (job == subcore_data->job && !job->irq_entry[i]) {
++				if (rknpu_dev->rk3588_core0_banks)
++					r6s_busy_end(&rknpu_dev->r6s_busy[i], ktime_get_ns(), true);
+ 				subcore_data->job = NULL;
+ 				subcore_data->task_num -=
+ 					rknpu_get_task_number(job, i);
+@@ -601,6 +788,7 @@
+ 						       job->timestamp));
+ 			}
+ 		}
++		r6s_diag_job_snapshot(job, 2);
+ 		rknpu_soft_reset(rknpu_dev);
+ 	} else {
+ 		LOG_ERROR(
+@@ -645,6 +833,13 @@
+ 	struct rknpu_job *job = NULL;
+ 	uint32_t status = 0;
+ 	unsigned long flags;
++
++	/* The PC IRQ is shared with the IOMMU. An unrelated IRQ must not mark
++	 * this job entered, clear registers, or advance its queue. RAW status
++	 * and a task counter are not a substitute for the masked DPU IRQ. */
++	status = REG_READ(RKNPU_OFFSET_INT_STATUS);
++	if (!status)
++		return IRQ_NONE;
+ 
+ 	subcore_data = &rknpu_dev->subcore_datas[core_index];
+ 
+@@ -659,7 +854,6 @@
+ 	job->irq_entry[core_index] = true;
+ 	spin_unlock_irqrestore(&rknpu_dev->irq_lock, flags);
+ 
+-	status = REG_READ(RKNPU_OFFSET_INT_STATUS);
+ 
+ 	job->int_status[core_index] = status;
+ 
+@@ -765,6 +959,16 @@
+ 		return -ENOMEM;
+ 	}
+ 
++	if (rknpu_dev->rk3588_core0_banks) {
++		struct r6s_task_range range;
++		int core;
++		if (!args->core_mask) { rknpu_job_free(job); return -EINVAL; }
++		for (core = 0; core < rknpu_dev->config->num_irqs; core++) {
++			if (!(args->core_mask & rknpu_core_mask(core))) continue;
++			ret = r6s_rk3588_job_task_range(job, core, &range);
++			if (ret) { rknpu_job_free(job); return ret; }
++		}
++	}
+ 	if (args->flags & RKNPU_JOB_FENCE_IN) {
+ #ifdef CONFIG_ROCKCHIP_RKNPU_FENCE
+ 		struct dma_fence *in_fence;
+@@ -831,7 +1035,8 @@
+ 		}
+ 	} else {
+ 		rknpu_job_schedule(job);
+-		if (args->flags & RKNPU_JOB_PC)
++		if ((args->flags & RKNPU_JOB_PC) &&
++		    !(rknpu_dev->rk3588_core0_banks && job->ret))
+ 			job->ret = rknpu_job_wait(job);
+ 
+ 		args->task_counter = job->args->task_counter;
+--- /dev/null
++++ b/rknpu_mainline_devfreq.c
+@@ -0,0 +1,87 @@
++// SPDX-License-Identifier: GPL-2.0
++/* R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md. */
++/* R6S initial mainline port: real regulator/clock OPP, fixed 200MHz. */
++#include <linux/clk.h>
++#include <linux/devfreq.h>
++#include <linux/pm_opp.h>
++#include <linux/regulator/consumer.h>
++#include "rknpu_drv.h"
++#include "rknpu_devfreq.h"
++#define R6S_NPU_RATE 200000000UL
++static int target(struct device *dev, unsigned long *freq, u32 flags)
++{
++ struct rknpu_device *npu = dev_get_drvdata(dev);
++ int ret;
++ if (*freq != R6S_NPU_RATE) return -EOPNOTSUPP;
++ mutex_lock(&npu->frequency_lock);
++ ret = dev_pm_opp_set_rate(dev, R6S_NPU_RATE);
++ if (!ret) {
++  npu->current_freq = clk_get_rate(npu->clks[0].clk);
++  npu->current_volt = regulator_get_voltage(npu->vdd);
++ }
++ mutex_unlock(&npu->frequency_lock);
++ return ret;
++}
++static int current_rate(struct device *dev, unsigned long *freq)
++{
++ struct rknpu_device *npu = dev_get_drvdata(dev);
++ *freq = clk_get_rate(npu->clks[0].clk);
++ return 0;
++}
++static struct devfreq_dev_profile profile = {
++ .initial_freq = R6S_NPU_RATE, .polling_ms = 0,
++ .target = target, .get_cur_freq = current_rate,
++};
++void rknpu_devfreq_lock(struct rknpu_device *npu)
++{ mutex_lock(&npu->frequency_lock); }
++void rknpu_devfreq_unlock(struct rknpu_device *npu)
++{ mutex_unlock(&npu->frequency_lock); }
++int rknpu_devfreq_init(struct rknpu_device *npu)
++{
++ const char *clocks[] = { "clk_npu", NULL };
++ const char *regulators[] = { "rknpu", NULL };
++ struct dev_pm_opp_config config = { .clk_names = clocks,
++                                     .regulator_names = regulators };
++ struct dev_pm_opp *opp;
++ unsigned long freq = R6S_NPU_RATE;
++ int ret;
++ npu->opp_config_token = dev_pm_opp_set_config(npu->dev, &config);
++ if (npu->opp_config_token < 0) return npu->opp_config_token;
++ ret = dev_pm_opp_of_add_table(npu->dev);
++ if (ret) goto clear;
++ npu->opp_table_added = true;
++ opp = dev_pm_opp_find_freq_exact(npu->dev, freq, true);
++ if (IS_ERR(opp)) { ret = PTR_ERR(opp); goto table; }
++ dev_pm_opp_put(opp);
++ ret = target(npu->dev, &freq, 0);
++ if (ret) goto table;
++ npu->devfreq = devfreq_add_device(npu->dev, &profile,
++                                  DEVFREQ_GOV_USERSPACE, NULL);
++ if (IS_ERR(npu->devfreq)) {
++  ret = PTR_ERR(npu->devfreq); npu->devfreq = NULL; goto table;
++ }
++ return 0;
++table:
++ dev_pm_opp_of_remove_table(npu->dev); npu->opp_table_added = false;
++clear:
++ dev_pm_opp_clear_config(npu->opp_config_token);
++ return ret;
++}
++void rknpu_devfreq_remove(struct rknpu_device *npu)
++{
++ if (npu->devfreq) { devfreq_remove_device(npu->devfreq); npu->devfreq = NULL; }
++ if (npu->opp_table_added) {
++  dev_pm_opp_of_remove_table(npu->dev); npu->opp_table_added = false;
++  dev_pm_opp_clear_config(npu->opp_config_token);
++ }
++}
++int rknpu_devfreq_runtime_suspend(struct device *dev)
++{
++ struct rknpu_device *npu = dev_get_drvdata(dev);
++ return npu->devfreq ? devfreq_suspend_device(npu->devfreq) : 0;
++}
++int rknpu_devfreq_runtime_resume(struct device *dev)
++{
++ struct rknpu_device *npu = dev_get_drvdata(dev);
++ return npu->devfreq ? devfreq_resume_device(npu->devfreq) : 0;
++}
+--- /dev/null
++++ b/rknpu_mainline_iommu.c
+@@ -0,0 +1,77 @@
++// SPDX-License-Identifier: GPL-2.0
++/* R6S Linux 6.12 port; modified 2026-10-11. See docs/PORTING.md. */
++/* R6S Linux 6.12 port: public DMA/IOMMU APIs only. */
++#include <linux/dma-mapping.h>
++#include <linux/iommu.h>
++#include <linux/dev_printk.h>
++#include "rknpu_iommu.h"
++int rknpu_iommu_dma_map_sg(struct device *dev, struct scatterlist *sg,
++ int nents, enum dma_data_direction dir, bool iova_aligned)
++{
++ struct scatterlist *entry;
++ dma_addr_t next = 0;
++ int mapped, i, seen = 0;
++ mapped = dma_map_sg(dev, sg, nents, dir);
++ if (!mapped) return 0;
++ /* Vendor command buffers require a contiguous device-address range.
++  * The kernel DMA mapper owns allocation/unmapping; never cast its cookie. */
++ for_each_sg(sg, entry, mapped, i) {
++  if (!sg_dma_len(entry)) continue;
++  if (seen && sg_dma_address(entry) != next) goto reject;
++  next = sg_dma_address(entry) + sg_dma_len(entry);
++  if (next < sg_dma_address(entry)) goto reject;
++  seen++;
++ }
++ if (seen != mapped) goto reject;
++ return mapped;
++reject:
++ dma_unmap_sg(dev, sg, nents, dir);
++ return 0;
++}
++void rknpu_iommu_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
++ int nents, enum dma_data_direction dir, bool iova_aligned)
++{
++ dma_unmap_sg(dev, sg, nents, dir);
++}
++int rknpu_iommu_init_domain(struct rknpu_device *npu)
++{
++ struct iommu_domain *domain = iommu_get_domain_for_dev(npu->dev);
++ if (!npu->iommu_en || !domain) return -ENODEV;
++ if (!(domain->type & __IOMMU_DOMAIN_DMA_API))
++  return dev_err_probe(npu->dev, -EOPNOTSUPP,
++                       "translated DMA domain required; current type=%u\n",
++                       domain->type);
++ npu->iommu_domains[0] = domain;
++ npu->iommu_domain_id = 0;
++ npu->iommu_domain_num = 1;
++ return 0;
++}
++int rknpu_iommu_switch_domain(struct rknpu_device *npu, int id)
++{
++ if (id != 0) return -EOPNOTSUPP;
++ if (iommu_get_domain_for_dev(npu->dev) != npu->iommu_domains[0])
++  return -ENODEV;
++ return 0;
++}
++int rknpu_iommu_domain_get_and_switch(struct rknpu_device *npu, int id)
++{
++ int ret;
++ mutex_lock(&npu->domain_lock);
++ ret = rknpu_iommu_switch_domain(npu, id);
++ if (!ret) atomic_inc(&npu->iommu_domain_refcount);
++ mutex_unlock(&npu->domain_lock);
++ return ret;
++}
++int rknpu_iommu_domain_put(struct rknpu_device *npu)
++{
++ if (WARN_ON_ONCE(atomic_dec_return(&npu->iommu_domain_refcount) < 0))
++  return -EINVAL;
++ return 0;
++}
++void rknpu_iommu_free_domains(struct rknpu_device *npu)
++{
++ /* Domain 0 belongs to the IOMMU core, not this driver. */
++ WARN_ON_ONCE(atomic_read(&npu->iommu_domain_refcount));
++ npu->iommu_domains[0] = NULL;
++ npu->iommu_domain_num = 0;
++}

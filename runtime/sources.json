@@ -1,0 +1,660 @@
+{
+  "glibc": {
+    "backport_origins": {
+      "fopen-test-2.39.patch": "cca93e5d88d3d4ed073c03100467696f652269e7",
+      "loader-origin-production-2.39.patch": "ed0c137b97eb940b4b64981e84ed806d3276edd9",
+      "loader-origin-tests-2.39.patch": "ed0c137b97eb940b4b64981e84ed806d3276edd9",
+      "power8-production-2.39.patch": "e622f82ea8797704ac8f761f88ed3e429e97fedd",
+      "power8-test-source-2.39.patch": "e622f82ea8797704ac8f761f88ed3e429e97fedd"
+    },
+    "changed_files": [
+      {
+        "path": "string/test-strncasecmp-nonarray.c",
+        "sha256": "92e52b9a3a31db29035b14dc3bd14f437b7911c2e01a4130ddd91731ba842b34"
+      },
+      {
+        "path": "libio/tst-fopen-ccs-empty.c",
+        "sha256": "e64eb5d345902f4cdc89a2212c15d2b8f648be7e723e09e5578ad3c9e65c380c"
+      },
+      {
+        "path": "libio/Makefile",
+        "sha256": "99a1ae5f2c42edd8abcd3516f69858108fd521fa56d5ae1a7656c344335cc6ec"
+      },
+      {
+        "path": "libio/fileops.c",
+        "sha256": "2486c2e4d138c407afc5448ce6c0e1bfd6b7ca2e46fbc69c2e41c53892bd4b92"
+      },
+      {
+        "path": "nscd/hstcache.c",
+        "sha256": "2acdb4441fc6eacb28d0c84def0c3ad0d88d0bde604729e1dbc4e4e59f87062b"
+      },
+      {
+        "path": "nscd/aicache.c",
+        "sha256": "56f9272c17c92a6c5d6fb5fca27e6d5ec30bd68e46df86511af6764d6cf3204b"
+      },
+      {
+        "path": "resolv/tst-resolv-res_init-skeleton.c",
+        "sha256": "70ab6c7ba78f3a929fa2c78650426d81a600e80bc7708cce0e09c8d9c95b62f2"
+      },
+      {
+        "path": "resolv/resolv_conf.c",
+        "sha256": "4dc6a8d85e0ec3c799b98a62c4274da792143bd499f88b4669d0eea5e09d17dd"
+      },
+      {
+        "path": "elf/tst-origin-secure.c",
+        "sha256": "78d863d2bdb5c37e7e0d1873bf7f903f17462955ba2f5a0d73aa38887d927b35"
+      },
+      {
+        "path": "elf/tst-dl-path-normalize.c",
+        "sha256": "cec0c119f9c299a809a2647ac9edd8601f105b08afb366d2c8547860bfdb35ac"
+      },
+      {
+        "path": "elf/tst-origin-secure-evilmod.c",
+        "sha256": "d01857b36d78d00dfba435a23da74f2bcc64e25475e2ab387456f01d733e347c"
+      },
+      {
+        "path": "elf/libtst-origin-secure-mod.c",
+        "sha256": "b756d38e87fde9aabebe9295e0e094b3041ec0ba36ef139f0f8f15e8e72500c9"
+      },
+      {
+        "path": "elf/dl-path-normalize.h",
+        "sha256": "3a3ea25f5a7218a34ae84052eeb16cbc3817ffd1bfba8ef9808110ca936610ab"
+      },
+      {
+        "path": "elf/Makefile",
+        "sha256": "46536038f30ad32480edaf2cc9f0cc6bd41d66e61e6213afd016a95701e92860"
+      },
+      {
+        "path": "elf/tst-origin-secure.h",
+        "sha256": "c1cec01c010238b0eaada7be3026585538f436f24f1b86a1d6959e394d6f7fa0"
+      },
+      {
+        "path": "elf/tst-origin-secure-victim.c",
+        "sha256": "11c2d6241d14acc239d2a7868e3ed8c04427f279a9988593c6938b21cbe82856"
+      },
+      {
+        "path": "elf/dl-load.c",
+        "sha256": "42039f0578582bb59455a7b85b2d87150e1f571dbafe6bcc41a4b3c1a211eeb8"
+      },
+      {
+        "path": "sysdeps/powerpc/powerpc64/power8/strcasecmp.S",
+        "sha256": "00abb42923ff4e60d5800ac631ee0d275be9200d4a49b54047f8b7dda8b4b904"
+      },
+      {
+        "path": "elf/tst-origin-secure.root/postclean.req",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "downloads": {
+      "glibc_2.39-0ubuntu8.9.debian.tar.xz": {
+        "bytes": 491440,
+        "sha256": "d6114f2302896a3c8612453e1bf1d0e61603e3029ba4a7c246fbb1ab4c48d2b0"
+      },
+      "glibc_2.39-0ubuntu8.9.dsc": {
+        "bytes": 9387,
+        "sha256": "1b73a89e0910eb3e5920cde639ac7eb606256d8ee809688ff9b5912b67002711"
+      },
+      "glibc_2.39.orig.tar.xz": {
+        "bytes": 18520988,
+        "sha256": "f77bd47cf8170c57365ae7bf86696c118adb3b120d3259c64c502d3dc1e2d926"
+      },
+      "glibc_2.39.orig.tar.xz.asc": {
+        "bytes": 833,
+        "sha256": "2cce427ef7933c17379f5514e4f0ccf8dffae5bf8c72f0f7e0bf8b8401f34be5"
+      }
+    },
+    "patches_in_order": [
+      {
+        "file": "patches/glibc/glibc-18374-upstream-01.patch",
+        "sha256": "d84d9908588fa764b8727ffa4d9ada466fa00ebe283d968d471590da8b39f91f",
+        "upstream_commit": "9765a538ebf8661a6e5578e01e35a3dd30db7eb4"
+      },
+      {
+        "file": "patches/glibc/glibc-8674-upstream.patch",
+        "sha256": "1e3b92a4fdb8ca306c8272b156a30ed9aa3b26f4851f11430b64b118621d5382",
+        "upstream_commit": "506ea57086bfb9ce3daff1c14246a1cb532aba0a"
+      },
+      {
+        "file": "patches/glibc/glibc-fix-e51efbc44f228425a405b805637d80ef81dc2345.patch",
+        "sha256": "97844ba6c438401c1d500300a97d05402ec975dcccb87f21542bef49172d7923",
+        "upstream_commit": "e51efbc44f228425a405b805637d80ef81dc2345"
+      },
+      {
+        "file": "patches/glibc/fopen-test-2.39.patch",
+        "sha256": "13a81f0d1be83ac0202342875dfc3c163dd7b14b782868a4a08e752266b31b13"
+      },
+      {
+        "file": "patches/glibc/power8-production-2.39.patch",
+        "sha256": "dbc9d960afc33ca29737575c5c4d42e4ca49b55f480d0ea31bda095f09160b7e"
+      },
+      {
+        "file": "patches/glibc/power8-test-source-2.39.patch",
+        "sha256": "f218894ecdaecec3186ef222c9268429e4b02ceed831e2ac161b3952002a3343"
+      },
+      {
+        "file": "patches/glibc/loader-origin-production-2.39.patch",
+        "sha256": "fe4f98f25d958df122ded8b9f4f1451dcbdd640de024f820bc90f516f65d8f24"
+      },
+      {
+        "file": "patches/glibc/loader-origin-tests-2.39.patch",
+        "sha256": "5bf9e34eaeac75fce5498439594cae135df80fc27067cc6ba95ac15ae980f541"
+      }
+    ],
+    "source_version": "2.39-0ubuntu8.9"
+  },
+  "libstdcxx": {
+    "Ubuntu_selected_patches": [
+      "git-updates",
+      "git-doc-updates",
+      "rename-info-files",
+      "gcc-gfdl-build",
+      "0001-Ada-remove-conversions-with-C-struct-timeval-from-GN",
+      "0002-Ada-remove-conversions-with-C-struct-timespec-from-A",
+      "0003-Ada-remove-conversions-with-C-time_t-from-System.OS_",
+      "0004-Ada-merge-all-timeval-and-timespec-definitions-and-c",
+      "0005-Ada-drop-unneeded-x32-variant-of-System.Linux",
+      "0006-Ada-drop-unneeded-posix2008-variant-of-System.Parame",
+      "0007-Ada-drop-unneeded-darwin-solaris-x32-variants-of-Sys",
+      "0008-Ada-import-nanosleep-from-System.OS_Primitives.Timed",
+      "0009-Ada-select-64-bits-time-functions-from-GNU-libc-when",
+      "gcc-textdomain",
+      "gcc-distro-specs",
+      "gcc-driver-extra-langs",
+      "gcc-hash-style-gnu",
+      "libstdc++-doclink",
+      "libstdc++-man-3cxx",
+      "libstdc++-test-installed",
+      "libstdc++-doxygen-SOURCE_DATE_EPOCH",
+      "alpha-no-ev4-directive",
+      "note-gnu-stack",
+      "libgomp-omp_h-multilib",
+      "libgo-testsuite",
+      "libgo-cleanfiles",
+      "gcc-target-include-asm",
+      "libgo-revert-timeout-exp",
+      "libgo-setcontext-config",
+      "gcc-auto-build",
+      "libitm-no-fortify-source",
+      "sparc64-biarch-long-double-128",
+      "pr66368",
+      "pr67590",
+      "libffi-race-condition",
+      "cuda-float128",
+      "t-libunwind-elf-Wl-z-defs",
+      "gcc-force-cross-layout",
+      "gcc-search-prefixed-as-ld",
+      "pr87808",
+      "pr94253",
+      "gcc-arm-disable-guality-tests",
+      "musl-ssp",
+      "pr79724-revert",
+      "pr104290-followup",
+      "arc-stddef",
+      "pr107475",
+      "gccrs-bootstrap-mipsel",
+      "hppa64-libgcov-fallback",
+      "libsanitizer-timebits",
+      "gcc-vhdl",
+      "pr11897",
+      "newlib-amdgcn-locks",
+      "pr99832-distro",
+      "ada-gcc-name",
+      "ada-gnat-name",
+      "ada-verbose",
+      "ada-link-lib",
+      "ada-gnattools-cross",
+      "ada-lib-info-source-date-epoch",
+      "ada-749574",
+      "ada-perl-shebang",
+      "disable-gdc-tests",
+      "alpha-ieee",
+      "alpha-ieee-doc",
+      "gdc-dynamic-link-phobos",
+      "ia64-disable-selective-scheduling",
+      "libstdc++-pythondir",
+      "gcc-verbose-lto-link",
+      "ada-armel-libatomic",
+      "hurd-multiarch",
+      "hurd-multilib-multiarch",
+      "gcc-ice-dump",
+      "gcc-ice-apport",
+      "skip-bootstrap-multilib",
+      "libffi-ro-eh_frame_sect",
+      "gcc-multiarch",
+      "config-ml",
+      "g++-multiarch-incdir",
+      "canonical-cpppath",
+      "gcc-multilib-multiarch",
+      "gcc-as-needed",
+      "gcc-as-needed-gold",
+      "go-testsuite",
+      "gcc-distro-specs-ubuntu-doc",
+      "testsuite-hardening-format",
+      "testsuite-hardening-printf-types",
+      "testsuite-hardening-updates",
+      "testsuite-glibc-warnings"
+    ],
+    "changed_files": [
+      {
+        "path": "libstdc++-v3/ChangeLog",
+        "sha256": "a914a604a2925d30f7bed8fb224c31f88c508e5dcbe802d2f1b028b79d914f8b"
+      },
+      {
+        "path": "libstdc++-v3/python/Makefile.am",
+        "sha256": "dee4f94f805a964308c8a5349580e00088eff62295e55c53af1f8728d4fd8200"
+      },
+      {
+        "path": "libstdc++-v3/python/Makefile.in",
+        "sha256": "133085b0dbd073a0c5d69ba303de36a6c3c695debd126c64868061ae4112c6a7"
+      },
+      {
+        "path": "libstdc++-v3/include/Makefile.am",
+        "sha256": "12cf39c6c8c96cc9a093c4665f0d9cb09057c1b03ce005d217cbfc9e09b76a03"
+      },
+      {
+        "path": "libstdc++-v3/include/Makefile.in",
+        "sha256": "7f1c5d1f12dabc3c5632c83ad6d381de8422f945e323882010c344171ddc0631"
+      },
+      {
+        "path": "libstdc++-v3/libsupc++/new_opa.cc",
+        "sha256": "9b26d0f3e2eba47107a8d11755ad6ae19f0606091c18bec1d5aa786225d1322d"
+      },
+      {
+        "path": "libstdc++-v3/scripts/run_doxygen",
+        "sha256": "d81f6f57c662473a3b59b0de0078fc1f7ec2b79beed886a9cf11b661362217de"
+      },
+      {
+        "path": "libstdc++-v3/include/tr2/dynamic_bitset.tcc",
+        "sha256": "bc0960908cb1eb663281780c3edc132dbf9be63c3ce19427ee12c19b2d93fc7e"
+      },
+      {
+        "path": "libstdc++-v3/include/tr2/dynamic_bitset",
+        "sha256": "4d1da4f3ff1cc8a7d6bc9245eac80dc03ff71944300582cd07d36279a08ed01a"
+      },
+      {
+        "path": "libstdc++-v3/include/std/istream",
+        "sha256": "c1768d578f0f084161e89c42bec997ac97db3a9e66d3042f826a9e643b09556a"
+      },
+      {
+        "path": "libstdc++-v3/include/std/list",
+        "sha256": "48943fdad5b179f596a345d49024f1ad07c35448f8ac66cc4bf0e0937d0b3d63"
+      },
+      {
+        "path": "libstdc++-v3/include/std/string",
+        "sha256": "3a9882f53493027a5729c225d7f83ca3ded240283d236627b22f362960713dc8"
+      },
+      {
+        "path": "libstdc++-v3/include/std/format",
+        "sha256": "09c38c6bcee71e7753775a4ba7e585417b151b757452ba1e75e46cfdcd15aa87"
+      },
+      {
+        "path": "libstdc++-v3/include/std/numbers",
+        "sha256": "1a14982e83269b4f4717e3578994f5d029593604ebcf05908037eb6548b6372d"
+      },
+      {
+        "path": "libstdc++-v3/include/std/algorithm",
+        "sha256": "1a09bb56534284cb95b64f6acb2784d060b7e61bc18cbbee1caaf50ecd4fcade"
+      },
+      {
+        "path": "libstdc++-v3/include/std/map",
+        "sha256": "8f02e5ae2a24b89e27db5bb8d660afafa0146b9cfd1ea70fbb0719ef328763a7"
+      },
+      {
+        "path": "libstdc++-v3/include/std/type_traits",
+        "sha256": "70799e564c01d30d8cbb40e4fe7b9b0f9440064d3a7cdbe24910ec5dd943b4e2"
+      },
+      {
+        "path": "libstdc++-v3/include/std/any",
+        "sha256": "8670aa4bbf7f7bdf083fc7f82a41a866699e3a68ca806c13b4834ea5405df33a"
+      },
+      {
+        "path": "libstdc++-v3/include/std/ostream",
+        "sha256": "44eeabf46fc1c80f21beea49e1b0c908fb5388140c3280cf3e7676336add582b"
+      },
+      {
+        "path": "libstdc++-v3/include/std/unordered_set",
+        "sha256": "767226cf1144ede462837ebffb583697c05337a4cb116254ed387bce72922a56"
+      },
+      {
+        "path": "libstdc++-v3/include/std/unordered_map",
+        "sha256": "096a3c5cb702cce87e699a06b55be06c879f182bf2112a1bea5221e0d2a6f500"
+      },
+      {
+        "path": "libstdc++-v3/include/std/deque",
+        "sha256": "30880770c90a14bd80892594bd75b50b9036d3d0a33db1194886e6c54fe73ed5"
+      },
+      {
+        "path": "libstdc++-v3/include/std/vector",
+        "sha256": "03cf064a98aa54b3da572fbaae2df6c974d0d0eec3aecff08f1c650b3b4d362f"
+      },
+      {
+        "path": "libstdc++-v3/include/std/functional",
+        "sha256": "07804e6ee81135bfd42fad6103a928f1d0dcdf9f2c17b493fcc318f89fd4749e"
+      },
+      {
+        "path": "libstdc++-v3/include/std/forward_list",
+        "sha256": "418061475c82ab7e3fc2f7d28004c0be32c5ef7c884299a336bac789239ba6cd"
+      },
+      {
+        "path": "libstdc++-v3/include/std/ranges",
+        "sha256": "3a289bb98b6c47cb092a7257cfd99a47044ee3fc7b7cd39ecfe8bf24ba4e7347"
+      },
+      {
+        "path": "libstdc++-v3/include/std/variant",
+        "sha256": "c1afb5c02c79fedea2151a9dceabd590abc7a29d6a9cdb60e3b711892f5ecb2d"
+      },
+      {
+        "path": "libstdc++-v3/include/std/scoped_allocator",
+        "sha256": "04f5eefc8a08c6224beb1d94097e9100dbf120dad669ab2e5af954af8baeeb51"
+      },
+      {
+        "path": "libstdc++-v3/include/std/set",
+        "sha256": "e29f11e2a00159922f3c14d6594b94f52be3dcb3852303a19a13499c3ec0351a"
+      },
+      {
+        "path": "libstdc++-v3/include/bits/version.def",
+        "sha256": "1b668724f077f7b63588a6f2c4af39c1cb82a6ec3c48c77d40008247eca2d745"
+      },
+      {
+        "path": "libstdc++-v3/include/bits/std_abs.h",
+        "sha256": "cb17b8a5c00364934dde697b2d21bee5bc5e9747f202f96b1bad4b425bee8161"
+      },
+      {
+        "path": "libstdc++-v3/include/bits/atomic_base.h",
+        "sha256": "6e7ef1af4d33100dab398a7ed4c6c825d0bb36881583b99acda174c56bef9109"
+      },
+      {
+        "path": "libstdc++-v3/include/bits/stl_iterator.h",
+        "sha256": "f36156b1e4576318aa7bce1b1f23507608f2b27ec7e4c1a12307dd05631f361b"
+      },
+      {
+        "path": "libstdc++-v3/include/bits/locale_classes.h",
+        "sha256": "731cca2a580e1c2aa5403f27fdeec131fe1829a124e5bc07d3e70fe8ab560a88"
+      },
+      {
+        "path": "libstdc++-v3/include/bits/locale_classes.tcc",
+        "sha256": "9749f2c37c698daa55dd945635ee8c82dce381ca611096d1ab314ec917ead2d9"
+      },
+      {
+        "path": "libstdc++-v3/include/bits/stl_bvector.h",
+        "sha256": "7abd919ef3579f6199fb87981f80239e25ec57bc0f80e16e0ca792d44bb14f29"
+      },
+      {
+        "path": "libstdc++-v3/include/bits/chrono.h",
+        "sha256": "d1b8eac94ce3138aeab4f2e4cfe7e38f18d3b04cb045ab7f0bdfd3ff67cd7090"
+      },
+      {
+        "path": "libstdc++-v3/include/bits/c++config",
+        "sha256": "6ac81a2b2603eb723a03599707bf3c71eea46517361de5a46e5ba9dc5f5da587"
+      },
+      {
+        "path": "libstdc++-v3/include/bits/version.h",
+        "sha256": "10e40fcb417136afe65154d593205bb115f0092b8954ac9e82f29592c744f625"
+      },
+      {
+        "path": "libstdc++-v3/include/bits/stl_algobase.h",
+        "sha256": "880930cd866fbbef133685efcaec19c868ae22e90a64ed6e49c59e730395179c"
+      },
+      {
+        "path": "libstdc++-v3/include/bits/ranges_base.h",
+        "sha256": "6d1efb883913327951e175539bd3edbe820d978c22ab9a17c7ea0265a0352459"
+      },
+      {
+        "path": "libstdc++-v3/include/ext/pb_ds/detail/binary_heap_/erase_fn_imps.hpp",
+        "sha256": "525b8274c3335ea1a80c6448be2946ae78d32ea3c427a8ee06e67367653ab30e"
+      },
+      {
+        "path": "libstdc++-v3/config/os/gnu-linux/os_defines.h",
+        "sha256": "733f578676f6b7689cb4113c8c38deda7cd7e8890b5d5b22ab2168bbf0a0a264"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/util/testsuite_allocator.h",
+        "sha256": "bc1788e9f67802afc4a62bc351896657196d643f0558ccd3a4d1b646607544c1"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/18_support/new_aligned_wrap.cc",
+        "sha256": "9836063ae92ef335959b69f9706f250ad757d0bc9bdcc4d6d4e7d9ee99de3e34"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/lib/libstdc++.exp",
+        "sha256": "285367a364752f9f36d2109e55620098cf33c478a4f52b5898e72f25f0c12ad0"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/27_io/filesystem/operations/copy_file.cc",
+        "sha256": "fed1189c8fc1c6a405d07e786865b33f7dd14106c1af024761c5454020f344b5"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/27_io/filesystem/operations/hard_link_count.cc",
+        "sha256": "63df1aff45f2aba88a006e84107a83f9d0ccc68d0d36c39c86122a1bef9c08e2"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/27_io/filesystem/operations/copy.cc",
+        "sha256": "02ea50ad1e3a75e8b96f9fc79b3bab5a43dbe830ba4660761f11ed2bdc830184"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/23_containers/list/version.cc",
+        "sha256": "33b891b801caf66db14ae3c024c67ca860d53f11dda30c37f7882bafd6bcd02f"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/23_containers/map/version.cc",
+        "sha256": "77d80bd6945e5aaf414d7cb88c1b5a4ee1b3fe654316d330cd6023c9c4ce41fe"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/23_containers/unordered_set/version.cc",
+        "sha256": "1433575a436646d723c93efe5f128c47511ddc9c1180b1234ae8c65a34cfb3e0"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/23_containers/unordered_map/version.cc",
+        "sha256": "580d11a24f70008e8e3d14c80515521e38f8fc540bc777b4c7fee47afd7eaf3f"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/23_containers/deque/version.cc",
+        "sha256": "6bb113f26bda724c5bb3a160137471e96e3b757ae250620d145426d673de389c"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/23_containers/vector/version.cc",
+        "sha256": "b1aa3dacbbb6e0feef7901cc03b3ae6646751921fdae882a7bfdf6398c3d6d04"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/23_containers/forward_list/version.cc",
+        "sha256": "58279c98794f021af85210ec2af049ddc3f05aab29fa8a8b33067f70576e2bb4"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/23_containers/set/version.cc",
+        "sha256": "55ad5d0e4e12952d9998f2aeab57d05026ae3239a6b1903b2100858d366d62ad"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/23_containers/vector/allocator/115854.cc",
+        "sha256": "e4b611706243becdb0726ead922fdb3ea5c64fbf8ac6226adec8f83487610353"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/23_containers/vector/bool/allocator/115854.cc",
+        "sha256": "ae988fb519cca00fc7bb72f975186b382c171f556b88da4a74533bc0ef43f77e"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/tr2/dynamic_bitset/pr115399.cc",
+        "sha256": "114989c88a12ea043670aa9d30248b4e07f5a0eb6ce97eb4b6c8e692c5f972cd"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/std/format/context.cc",
+        "sha256": "8fb55f775c7862e6af1a4e3d6e612b6a59f91f95ad1cadf3fe85514856ec7c27"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/std/time/syn_c++20.cc",
+        "sha256": "beb53983c80991f1a5423c08352b8854b40745834a2621b809d3fecc7638461e"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/std/format/arguments/args.cc",
+        "sha256": "7de7a4ea709629b7df5785cd9a44dc3569a444d44e124909cd8c35697a3afca5"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/std/ranges/adaptors/116038.cc",
+        "sha256": "0ed6aca9851c7020c0a73fba7d505aae72ce2695179992fd2a01b8de4ded4255"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/ext/pb_ds/regression/priority_queues_erase_if.cc",
+        "sha256": "18915634d4d172723feac088d17b755e89990377486ac82e0eabf66c5ea9dc65"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/21_strings/headers/string/version.cc",
+        "sha256": "8c4760b2d1faf9820681b40685aca9f4d27cf55bb1f7793940e992391f589320"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/24_iterators/move_iterator/lwg3736.cc",
+        "sha256": "6f07ee516bf39ce947d9c9e93b77ab5398a755011b935102ccdf6a9c5fd1f011"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/20_util/variant/types_neg.cc",
+        "sha256": "dd70cabcfef0e67cf54cc1db7b5339e389da12b0e3cb34e17afa62913dc6997f"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/20_util/scoped_allocator/version.cc",
+        "sha256": "989126a3550814d22614532d10dd3cf4b3981d0522dcabe98aa803a91c19cbe0"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/20_util/function_objects/bind_back/116038.cc",
+        "sha256": "64781f12ba45f2e5aaf2df1da7d908ffcf6c888e4fc86ae8a16b7a158938db82"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/20_util/function_objects/bind_front/116038.cc",
+        "sha256": "3a77023ea7b28a209f82352f814a331e50a7cd0f9d72a3132782bd6fe0c0b750"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/20_util/any/misc/lwg3305.cc",
+        "sha256": "01ad047803862dcb241b14fb29e87d796c6d8d8cbd49656eaad8d8267a7a16d9"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/20_util/headers/memory/version.cc",
+        "sha256": "cdeb0ccf7cae867b3b2a4f8429b9682549a3b78f8fb951bfb550307beacb09e5"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/22_locale/locale/operations/2.cc",
+        "sha256": "eaf312f0c479bb9e2c9b6dc8d4ff17099f47d35f2d507017d4c9423bb8bf3db6"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/22_locale/locale/cons/unicode.cc",
+        "sha256": "49f3eec5de623388873073b33aa47f0b7759e32b949a4376f44db8708c0c5b77"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/22_locale/locale/cons/2.cc",
+        "sha256": "839a84f8226c5d8454a144762f19f73760d3c82df5ff835173c9a810940ac228"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/22_locale/locale/cons/12438.cc",
+        "sha256": "6c368d1c6a3ce285369d9e85ac08e7b6d8bac4c8b4c3f068cce05ecfdb60db73"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/25_algorithms/headers/algorithm/synopsis.cc",
+        "sha256": "e299cf9a09f1b30bb9ce3f81c377232e40d4952db8513265732474967f16bc90"
+      },
+      {
+        "path": "libstdc++-v3/testsuite/29_atomics/atomic_float/constinit.cc",
+        "sha256": "63bd4b77375f6534d746ba612f6b1f9c53c5972dc5bfdb7f017fe68615a7ed6b"
+      },
+      {
+        "path": "libstdc++-v3/doc/html/api.html",
+        "sha256": "40dd57d386e89aab5e4e34b2287827df936c3293b96151163134dc4a8133730b"
+      },
+      {
+        "path": "libstdc++-v3/doc/xml/api.xml",
+        "sha256": "a35e53baa18c1c43b233a1380ba6d4458a01387a394ce4340bfe98d54aa63f23"
+      },
+      {
+        "path": "libstdc++-v3/doc/doxygen/mainpage.html",
+        "sha256": "496c115bc40966baf8bda7625816d6beb98e98c3e438d91b4875df604626fdaa"
+      },
+      {
+        "path": "libstdc++-v3/doc/doxygen/user.cfg.in",
+        "sha256": "8e2b8fa61726a7cc79a76ac047318000a5ac02183b3b430103950128a3394176"
+      },
+      {
+        "path": "libstdc++-v3/src/c++17/fs_ops.cc",
+        "sha256": "23a3499ccafb06821aeec673f758534008592f0024fd74937583d30c2f1b5901"
+      },
+      {
+        "path": "libstdc++-v3/src/filesystem/ops-common.h",
+        "sha256": "6406b18b0d892cd500c350f0521c041ba2f1d506437f1c888826a945a70fb01e"
+      },
+      {
+        "path": "libstdc++-v3/src/filesystem/ops.cc",
+        "sha256": "90a913ab6dbf122a2d80989b33b0d5a0c3a488a810c9c6277dc641348e847c89"
+      }
+    ],
+    "downloads": {
+      "gcc-14_14.2.0-4ubuntu2~24.04.1.debian.tar.xz": {
+        "bytes": 1950432,
+        "sha256": "cfece214c2fb790ef5f3baffb9a53e40618e7ae12d053610b251e94d77d08ade"
+      },
+      "gcc-14_14.2.0-4ubuntu2~24.04.1.dsc": {
+        "bytes": 46930,
+        "sha256": "50950080874a6ec6780dd60c243e21d9cda9d736bb32bca98d16095d27cc01b5"
+      },
+      "gcc-14_14.2.0.orig.tar.gz": {
+        "bytes": 97158172,
+        "sha256": "768c314c11eeab56ccebb91eb42ec4a41122fa94f0d83400126401942622197b"
+      }
+    },
+    "inner_tar_sha256": "a7b39bc69cbf9e25826c5a60ab26477001f7c08d85cec04bc0e29cabed6f3cc9",
+    "patches_in_order": [
+      {
+        "file": "patches/libstdcxx/ubuntu-git-updates.patch",
+        "original_patch_sha256": "eed0a26bf9b6a326e82ab72976776fa695a31dfd304e418915d980f89ec46260",
+        "sha256": "6954e7e3392f4f1428215fe0a1f76308a2ee89b98a3e0a06b2084db8e66f16ca"
+      },
+      {
+        "file": "patches/libstdcxx/ubuntu-libstdc++-doclink.patch",
+        "original_patch_sha256": "68a7126e13097fd072867a7a0b96ce47cb05d2dc35c5c6412648b418d0f9e222",
+        "sha256": "92b6b06071b95853218729d4229f2619b3670bd5638ac5fc0fd843c1d8dd5636"
+      },
+      {
+        "file": "patches/libstdcxx/ubuntu-libstdc++-man-3cxx.patch",
+        "original_patch_sha256": "716f74ea1cd5deb812b9af7fb7acf6b6c1ccacf1a650ffe9f6f952d3d4e667e4",
+        "sha256": "bc3bf1a8a3dfcb89c644a74a934981eec94531b86f74969aab20326d70ad6027"
+      },
+      {
+        "file": "patches/libstdcxx/ubuntu-libstdc++-test-installed.patch",
+        "original_patch_sha256": "01a4c03037bb4e4075e58138b6a536eba1676d76ea3b5ac621256069b9f887bd",
+        "sha256": "a773ebf29c4c38c23b74b1c05ebbfd6bc2ad0289eb384a2ba94ada9e93c13bcd"
+      },
+      {
+        "file": "patches/libstdcxx/ubuntu-libstdc++-doxygen-SOURCE_DATE_EPOCH.patch",
+        "original_patch_sha256": "44c08ddf86859a7e6c517473512bdfb91c29b49d31a71ba376e60295a95b4932",
+        "sha256": "1dceecd58ddff6e2cdad7b9c5b35b86dde36cbb9ceacd9cedb25a2868565f4e6"
+      },
+      {
+        "file": "patches/libstdcxx/ubuntu-cuda-float128.patch",
+        "original_patch_sha256": "0ae6161bdeb90f0f641470f859742336642a2b519d257b3f2d72f5c7a84e4354",
+        "sha256": "eb00471259e426f85481a23655052ee8c374b36e7d5f35150db460090071b1a1"
+      },
+      {
+        "file": "patches/libstdcxx/ubuntu-pr99832-distro.patch",
+        "original_patch_sha256": "725172a94772fb59c13baf31fdcab627c80a996cc09007e066cd4e2a200c3916",
+        "sha256": "23dda2b3599484800e3558bdafdfb21b46a7dd40fe763b6a94ee00a6858f445f"
+      },
+      {
+        "file": "patches/libstdcxx/ubuntu-libstdc++-pythondir.patch",
+        "original_patch_sha256": "dc8c35675108db2ae50e2f5c8212e6dea3954aabb2cb64241ad6f92f29185f37",
+        "sha256": "5e4876853811fd28b621c3cbaedae7d6514b223bd27005605ed34a7dad035b09"
+      },
+      {
+        "file": "patches/libstdcxx/ubuntu-g++-multiarch-incdir.patch",
+        "original_patch_sha256": "fc2b462c67eca999438ae131b122178d719a04c40cb5edd78034e7650aa4c049",
+        "sha256": "f1cd71eb50701bc42edeec720b0205510b03ef125c5562bc0b482acc352f231f"
+      },
+      {
+        "file": "patches/libstdcxx/gcc-95619-upstream.patch",
+        "original_patch_sha256": "6c5398bd089eca55f12c7bd174f6af1f438031a0ac551f4946d5fb74e39ca866",
+        "sha256": "6c5398bd089eca55f12c7bd174f6af1f438031a0ac551f4946d5fb74e39ca866",
+        "upstream_commit": "200183d4ab5d57575f3dfebc6af3baf649910b9e"
+      },
+      {
+        "file": "patches/libstdcxx/gcc-102010-upstream.patch",
+        "original_patch_sha256": "2ddccff09f62251d56b234af961400ecddd4aa14db0afbbf568f58a003f40aa8",
+        "sha256": "2ddccff09f62251d56b234af961400ecddd4aa14db0afbbf568f58a003f40aa8",
+        "upstream_commit": "aaa8351f4d2e636f9680a1f0a8ebc2f0a60611e6"
+      }
+    ],
+    "source_projection": "all Ubuntu-selected hunks affecting libstdc++-v3 only; no compiler/front-end changes shipped",
+    "source_version": "14.2.0-4ubuntu2~24.04.1"
+  }
+}

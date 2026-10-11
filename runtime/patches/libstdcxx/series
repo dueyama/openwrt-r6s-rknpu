@@ -1,0 +1,11 @@
+ubuntu-git-updates.patch
+ubuntu-libstdc++-doclink.patch
+ubuntu-libstdc++-man-3cxx.patch
+ubuntu-libstdc++-test-installed.patch
+ubuntu-libstdc++-doxygen-SOURCE_DATE_EPOCH.patch
+ubuntu-cuda-float128.patch
+ubuntu-pr99832-distro.patch
+ubuntu-libstdc++-pythondir.patch
+ubuntu-g++-multiarch-incdir.patch
+gcc-95619-upstream.patch
+gcc-102010-upstream.patch

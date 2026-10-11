@@ -1,0 +1,1813 @@
+--- a/libstdc++-v3/ChangeLog
++++ b/libstdc++-v3/ChangeLog
+@@ -1,3 +1,263 @@
++2024-09-04  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-09-03  Jonathan Wakely  <jwakely@redhat.com>
++
++	* src/c++17/fs_ops.cc (auto_win_file_handle): Add error_code&
++	member and set it if CreateFileW or GetFileInformationByHandle
++	fails.
++	(fs::equiv_files) [_GLIBCXX_FILESYSTEM_IS_WINDOWS]: Simplify
++	control flow.
++	(fs::hard_link_count) [_GLIBCXX_FILESYSTEM_IS_WINDOWS]: Clear ec
++	on success.
++	* testsuite/27_io/filesystem/operations/hard_link_count.cc:
++	Check error handling.
++
++2024-09-04  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-07-30  Jonathan Wakely  <jwakely@redhat.com>
++
++	* src/c++17/fs_ops.cc (auto_win_file_handle): Change constructor
++	parameter from const path& to const wchar_t*.
++	(fs::equiv_files): New function.
++	(fs::equivalent): Use equiv_files.
++	* src/filesystem/ops-common.h (fs::equiv_files): Declare.
++	(do_copy_file): Use equiv_files.
++	* src/filesystem/ops.cc (fs::equiv_files): Define.
++	(fs::copy, fs::equivalent): Use equiv_files.
++	* testsuite/27_io/filesystem/operations/copy.cc: Test
++	overwriting directory contents recursively.
++	* testsuite/27_io/filesystem/operations/copy_file.cc: Test
++	overwriting existing files.
++
++2024-09-04  Lennox Shou Hao Ho  <lennoxhoe@gmail.com>
++
++	Backported from master:
++	2024-07-30  Lennox Shou Hao Ho  <lennoxhoe@gmail.com>
++
++	PR libstdc++/113663
++	* src/c++17/fs_ops.cc (fs::equivalent): Moved helper class
++	auto_handle to anonymous namespace as auto_win_file_handle.
++	(fs::hard_link_count): Changed Windows implementation to use
++	information provided by GetFileInformationByHandle which is more
++	reliable.
++	* testsuite/27_io/filesystem/operations/hard_link_count.cc: New
++	test.
++
++2024-09-04  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-09-03  Jonathan Wakely  <jwakely@redhat.com>
++
++	PR libstdc++/116549
++	* include/bits/stl_iterator.h (disable_sized_sentinel_for):
++	Define specialization for two move_iterator types, as per LWG
++	3736.
++	* testsuite/24_iterators/move_iterator/lwg3736.cc: New test.
++
++2024-09-04  Dhruv Chawla  <dhruvc@nvidia.com>
++
++	Backported from master:
++	2024-09-03  Dhruv Chawla  <dhruvc@nvidia.com>
++
++	* include/std/deque: Define macro
++	__glibcxx_want_allocator_traits_is_always_equal.
++	* include/std/forward_list: Likewise.
++	* include/std/list: Likewise.
++	* include/std/map: Likewise.
++	* include/std/scoped_allocator: Likewise.
++	* include/std/set: Likewise.
++	* include/std/string: Likewise.
++	* include/std/unordered_map: Likewise.
++	* include/std/unordered_set: Likewise.
++	* include/std/vector: Likewise.
++	* testsuite/20_util/headers/memory/version.cc: New test.
++	* testsuite/20_util/scoped_allocator/version.cc: Likewise.
++	* testsuite/21_strings/headers/string/version.cc: Likewise.
++	* testsuite/23_containers/deque/version.cc: Likewise.
++	* testsuite/23_containers/forward_list/version.cc: Likewise.
++	* testsuite/23_containers/list/version.cc: Likewise.
++	* testsuite/23_containers/map/version.cc: Likewise.
++	* testsuite/23_containers/set/version.cc: Likewise.
++	* testsuite/23_containers/unordered_map/version.cc: Likewise.
++	* testsuite/23_containers/unordered_set/version.cc: Likewise.
++	* testsuite/23_containers/vector/version.cc: Likewise.
++
++2024-09-04  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-08-21  Jonathan Wakely  <jwakely@redhat.com>
++
++	PR libstdc++/116381
++	* include/std/variant (variant): Fix conditions for
++	static_assert to match the spec.
++	* testsuite/20_util/variant/types_neg.cc: New test.
++
++2024-08-03  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-06-21  Jonathan Wakely  <jwakely@redhat.com>
++
++	* include/bits/version.def (chrono): Add cxx11abi = yes.
++	* include/bits/version.h: Regenerate.
++	* testsuite/std/time/syn_c++20.cc: Adjust expected value for
++	the feature test macro.
++
++2024-08-02  Patrick Palka  <ppalka@redhat.com>
++
++	Backported from master:
++	2024-07-25  Patrick Palka  <ppalka@redhat.com>
++
++	PR libstdc++/116038
++	* include/std/functional (_Bind_front::operator()): Use __like_t
++	instead of std::forward when forwarding __self.
++	(_Bind_back::operator()): Likewise.
++	* include/std/ranges (_Partial::operator()): Likewise.
++	(_Pipe::operator()): Likewise.
++	* testsuite/20_util/function_objects/bind_back/116038.cc: New test.
++	* testsuite/20_util/function_objects/bind_front/116038.cc: New test.
++	* testsuite/std/ranges/adaptors/116038.cc: New test.
++
++2024-08-01  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-05-22  Jonathan Wakely  <jwakely@redhat.com>
++
++	* include/bits/locale_classes.h (locale::combine)
++	(locale::name, locale::operator==, locale::operator!=)
++	(locale::operator(), locale::classic): Add nodiscard
++	attribute.
++	* include/bits/locale_classes.tcc (has_facet, use_facet):
++	Likewise.
++	* testsuite/22_locale/locale/cons/12438.cc: Add dg-warning for
++	nodiscard diagnostic.
++	* testsuite/22_locale/locale/cons/2.cc: Cast use_facet
++	expression to void, to suppress diagnostic.
++	* testsuite/22_locale/locale/cons/unicode.cc: Likewise.
++	* testsuite/22_locale/locale/operations/2.cc: Add dg-warning.
++
++2024-08-01  Deev Patel  <dkp10000@gmail.com>
++
++	Backported from master:
++	2024-06-08  Deev Patel  <dkp10000@gmail.com>
++		    Jonathan Wakely  <jwakely@redhat.com>
++
++	* include/bits/atomic_base.h (__atomic_impl::__clear_padding):
++	Add missing constexpr specifier.
++	* testsuite/29_atomics/atomic_float/constinit.cc: New test.
++
++2024-08-01  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-06-21  Jonathan Wakely  <jwakely@redhat.com>
++
++	* testsuite/util/testsuite_allocator.h (tracker_allocator):
++	Initialize base class in copy constructor.
++
++2024-08-01  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-06-12  Jonathan Wakely  <jwakely@redhat.com>
++
++	PR libstdc++/115399
++	* include/tr2/dynamic_bitset (operator>>=): Remove redundant
++	call to _M_do_sanitize.
++	* include/tr2/dynamic_bitset.tcc (_M_do_left_shift): Zero out
++	low bits in words that should no longer be populated.
++	(_M_do_right_shift): Likewise for high bits.
++	* testsuite/tr2/dynamic_bitset/pr115399.cc: New test.
++
++2024-08-01  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-07-25  Jonathan Wakely  <jwakely@redhat.com>
++
++	* include/std/format (basic_format_args): Remove default
++	constructor, as per LWG 4106.
++	* testsuite/std/format/arguments/args.cc: Check it isn't default
++	constructible.
++
++2024-08-01  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-07-10  Jonathan Wakely  <jwakely@redhat.com>
++
++	PR libstdc++/114387
++	* include/std/format (basic_format_context): Define copy
++	operations as deleted, as per LWG 4061.
++	* testsuite/std/format/context.cc: New test.
++
++2024-08-01  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-06-21  Jonathan Wakely  <jwakely@redhat.com>
++
++	* include/std/any (any_cast(any*), any_cast(const any*)): Add
++	static assertion to reject void types, as per LWG 3305.
++	* testsuite/20_util/any/misc/lwg3305.cc: New test.
++
++2024-08-01  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-06-08  Jonathan Wakely  <jwakely@redhat.com>
++
++	* include/std/algorithm: Define __glibcxx_want_ranges.
++	* testsuite/25_algorithms/headers/algorithm/synopsis.cc: Check
++	feature test macro in C++20 mode.
++
++2024-08-01  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-07-10  Jonathan Wakely  <jwakely@redhat.com>
++
++	PR libstdc++/115854
++	* include/bits/stl_bvector.h (_Bvector_base): Convert allocator
++	to rebound type explicitly.
++	* testsuite/23_containers/vector/allocator/115854.cc: New test.
++	* testsuite/23_containers/vector/bool/allocator/115854.cc: New test.
++
++2024-08-01  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-06-13  Jonathan Wakely  <jwakely@redhat.com>
++
++	* include/bits/ranges_base.h (const_iterator_t): Change
++	preprocessor condition to use __glibcxx_ranges_as_const.
++	(const_sentinel_t, range_const_reference_t): Likewise.
++	(__access::__possibly_const_range, cbegin, cend, crbegin)
++	(crend, cdata): Likewise.
++	* include/bits/stl_iterator.h (iter_const_reference_t)
++	(basic_const_iterator, const_iterator, const_sentinel)
++	(make_const_iterator): Likewise.
++
++2024-08-01  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-07-06  Jonathan Wakely  <jwakely@redhat.com>
++
++	* include/std/variant (_Variant_storage::_M_reset): Use
++	__unlikely__ form of attribute instead of unlikely.
++
++2024-08-01  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-07-24  Jonathan Wakely  <jwakely@redhat.com>
++
++	PR libstdc++/116070
++	* include/std/istream: Check feature test macro before using
++	is_class_v and is_same_v.
++	* include/std/ostream: Likewise.
++
++2024-08-01  Jonathan Wakely  <jwakely@redhat.com>
++
++	Backported from master:
++	2024-07-24  Jonathan Wakely  <jwakely@redhat.com>
++
++	PR libstdc++/116070
++	* include/bits/stl_bvector.h: Check feature test macro before
++	using is_default_constructible_v.
++
+ 2024-08-01  Release Manager
+ 
+ 	* GCC 14.2.0 released.
+--- a/libstdc++-v3/include/bits/atomic_base.h
++++ b/libstdc++-v3/include/bits/atomic_base.h
+@@ -968,7 +968,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+       }
+ 
+     template<typename _Tp>
+-      _GLIBCXX_ALWAYS_INLINE _Tp*
++      _GLIBCXX_ALWAYS_INLINE _GLIBCXX14_CONSTEXPR _Tp*
+       __clear_padding(_Tp& __val) noexcept
+       {
+ 	auto* __ptr = std::__addressof(__val);
+--- a/libstdc++-v3/include/bits/locale_classes.h
++++ b/libstdc++-v3/include/bits/locale_classes.h
+@@ -240,6 +240,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+      *  @throw  std::runtime_error if __other has no facet of type _Facet.
+     */
+     template<typename _Facet>
++      _GLIBCXX_NODISCARD
+       locale
+       combine(const locale& __other) const;
+ 
+@@ -248,7 +249,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+      *  @brief  Return locale name.
+      *  @return  Locale name or "*" if unnamed.
+     */
+-    _GLIBCXX_DEFAULT_ABI_TAG
++    _GLIBCXX_NODISCARD _GLIBCXX_DEFAULT_ABI_TAG
+     string
+     name() const;
+ 
+@@ -269,6 +270,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+      *  @return  True if other and this refer to the same locale instance, are
+      *		 copies, or have the same name.  False otherwise.
+     */
++    _GLIBCXX_NODISCARD
+     bool
+     operator==(const locale& __other) const throw();
+ 
+@@ -279,6 +281,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+      *  @param  __other  The locale to compare against.
+      *  @return  ! (*this == __other)
+     */
++    _GLIBCXX_NODISCARD
+     bool
+     operator!=(const locale& __other) const throw()
+     { return !(this->operator==(__other)); }
+@@ -300,6 +303,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+      *  @return  True if collate<_Char> facet compares __s1 < __s2, else false.
+     */
+     template<typename _Char, typename _Traits, typename _Alloc>
++      _GLIBCXX_NODISCARD
+       bool
+       operator()(const basic_string<_Char, _Traits, _Alloc>& __s1,
+ 		 const basic_string<_Char, _Traits, _Alloc>& __s2) const;
+@@ -321,6 +325,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+     /**
+      *  @brief  Return reference to the C locale.
+     */
++    _GLIBCXX_NODISCARD
+     static const locale&
+     classic();
+ 
+--- a/libstdc++-v3/include/bits/locale_classes.tcc
++++ b/libstdc++-v3/include/bits/locale_classes.tcc
+@@ -162,6 +162,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+    *  @return  true if @p __loc contains a facet of type _Facet, else false.
+   */
+   template<typename _Facet>
++    _GLIBCXX_NODISCARD
+     inline bool
+     has_facet(const locale& __loc) throw()
+     {
+@@ -191,6 +192,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+ #pragma GCC diagnostic push
+ #pragma GCC diagnostic ignored "-Wdangling-reference"
+   template<typename _Facet>
++    _GLIBCXX_NODISCARD
+     inline const _Facet&
+     use_facet(const locale& __loc)
+     {
+--- a/libstdc++-v3/include/bits/ranges_base.h
++++ b/libstdc++-v3/include/bits/ranges_base.h
+@@ -513,7 +513,7 @@ namespace ranges
+   template<range _Range>
+     using sentinel_t = decltype(ranges::end(std::declval<_Range&>()));
+ 
+-#if __cplusplus > 202002L
++#if __glibcxx_ranges_as_const // >= C++23
+   template<range _Range>
+     using const_iterator_t = const_iterator<iterator_t<_Range>>;
+ 
+@@ -616,7 +616,7 @@ namespace ranges
+     concept common_range
+       = range<_Tp> && same_as<iterator_t<_Tp>, sentinel_t<_Tp>>;
+ 
+-#if __cplusplus > 202002L
++#if __glibcxx_ranges_as_const // >= C++23
+   template<typename _Tp>
+     concept constant_range
+       = input_range<_Tp> && std::__detail::__constant_iterator<iterator_t<_Tp>>;
+@@ -624,7 +624,7 @@ namespace ranges
+ 
+   namespace __access
+   {
+-#if __cplusplus > 202020L
++#if __glibcxx_ranges_as_const // >= C++23
+     template<typename _Range>
+       constexpr auto&
+       __possibly_const_range(_Range& __r) noexcept
+@@ -651,7 +651,7 @@ namespace ranges
+ 
+     struct _CBegin
+     {
+-#if __cplusplus > 202002L
++#if __glibcxx_ranges_as_const // >= C++23
+       template<__maybe_borrowed_range _Tp>
+ 	[[nodiscard]]
+ 	constexpr auto
+@@ -679,7 +679,7 @@ namespace ranges
+ 
+     struct _CEnd final
+     {
+-#if __cplusplus > 202002L
++#if __glibcxx_ranges_as_const // >= C++23
+       template<__maybe_borrowed_range _Tp>
+ 	[[nodiscard]]
+ 	constexpr auto
+@@ -707,7 +707,7 @@ namespace ranges
+ 
+     struct _CRBegin
+     {
+-#if __cplusplus > 202002L
++#if __glibcxx_ranges_as_const // >= C++23
+       template<__maybe_borrowed_range _Tp>
+ 	[[nodiscard]]
+ 	constexpr auto
+@@ -735,7 +735,7 @@ namespace ranges
+ 
+     struct _CREnd
+     {
+-#if __cplusplus > 202002L
++#if __glibcxx_ranges_as_const // >= C++23
+       template<__maybe_borrowed_range _Tp>
+ 	[[nodiscard]]
+ 	constexpr auto
+@@ -763,7 +763,7 @@ namespace ranges
+ 
+     struct _CData
+     {
+-#if __cplusplus > 202002L
++#if __glibcxx_ranges_as_const // >= C++23
+       template<__maybe_borrowed_range _Tp>
+ 	[[nodiscard]]
+ 	constexpr const auto*
+--- a/libstdc++-v3/include/bits/stl_bvector.h
++++ b/libstdc++-v3/include/bits/stl_bvector.h
+@@ -593,7 +593,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
+ 	_GLIBCXX20_CONSTEXPR
+ 	_Bvector_impl() _GLIBCXX_NOEXCEPT_IF(
+ 	  is_nothrow_default_constructible<_Bit_alloc_type>::value)
+-#if __cpp_concepts
++#if __cpp_concepts && __glibcxx_type_trait_variable_templates
+ 	requires is_default_constructible_v<_Bit_alloc_type>
+ #endif
+ 	: _Bit_alloc_type()
+@@ -654,7 +654,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
+ 
+       _GLIBCXX20_CONSTEXPR
+       _Bvector_base(const allocator_type& __a)
+-      : _M_impl(__a) { }
++      : _M_impl(_Bit_alloc_type(__a)) { }
+ 
+ #if __cplusplus >= 201103L
+       _Bvector_base(_Bvector_base&&) = default;
+--- a/libstdc++-v3/include/bits/stl_iterator.h
++++ b/libstdc++-v3/include/bits/stl_iterator.h
+@@ -1822,6 +1822,14 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+     { return _ReturnType(__i); }
+ 
+ #if __cplusplus > 201703L && __glibcxx_concepts
++  // _GLIBCXX_RESOLVE_LIB_DEFECTS
++  // 3736.  move_iterator missing disable_sized_sentinel_for specialization
++  template<typename _Iterator1, typename _Iterator2>
++    requires (!sized_sentinel_for<_Iterator1, _Iterator2>)
++    inline constexpr bool
++    disable_sized_sentinel_for<move_iterator<_Iterator1>,
++			       move_iterator<_Iterator2>> = true;
++
+   // [iterators.common] Common iterators
+ 
+   namespace __detail
+@@ -2571,7 +2579,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+ 				      void>;
+     };
+ 
+-#if __cplusplus > 202020L
++#if __glibcxx_ranges_as_const // >= C++23
+   template<indirectly_readable _It>
+     using iter_const_reference_t
+       = common_reference_t<const iter_value_t<_It>&&, iter_reference_t<_It>>;
+--- a/libstdc++-v3/include/bits/version.def
++++ b/libstdc++-v3/include/bits/version.def
+@@ -574,6 +574,7 @@ ftms = {
+     v = 201907;
+     cxxmin = 20;
+     hosted = yes;
++    cxx11abi = yes; // std::chrono::tzdb requires cxx11 std::string
+   };
+   values = {
+     v = 201611;
+--- a/libstdc++-v3/include/bits/version.h
++++ b/libstdc++-v3/include/bits/version.h
+@@ -639,7 +639,7 @@
+ #undef __glibcxx_want_boyer_moore_searcher
+ 
+ #if !defined(__cpp_lib_chrono)
+-# if (__cplusplus >= 202002L) && _GLIBCXX_HOSTED
++# if (__cplusplus >= 202002L) && _GLIBCXX_USE_CXX11_ABI && _GLIBCXX_HOSTED
+ #  define __glibcxx_chrono 201907L
+ #  if defined(__glibcxx_want_all) || defined(__glibcxx_want_chrono)
+ #   define __cpp_lib_chrono 201907L
+--- a/libstdc++-v3/include/std/algorithm
++++ b/libstdc++-v3/include/std/algorithm
+@@ -67,6 +67,7 @@
+ #define __glibcxx_want_constexpr_algorithms
+ #define __glibcxx_want_freestanding_algorithm
+ #define __glibcxx_want_parallel_algorithm
++#define __glibcxx_want_ranges
+ #define __glibcxx_want_ranges_contains
+ #define __glibcxx_want_ranges_find_last
+ #define __glibcxx_want_ranges_fold
+--- a/libstdc++-v3/include/std/any
++++ b/libstdc++-v3/include/std/any
+@@ -554,6 +554,12 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+   template<typename _ValueType>
+     inline const _ValueType* any_cast(const any* __any) noexcept
+     {
++      // _GLIBCXX_RESOLVE_LIB_DEFECTS
++      // 3305. any_cast<void>
++      static_assert(!is_void_v<_ValueType>);
++
++      // As an optimization, don't bother instantiating __any_caster for
++      // function types, since std::any can only hold objects.
+       if constexpr (is_object_v<_ValueType>)
+ 	if (__any)
+ 	  return static_cast<_ValueType*>(__any_caster<_ValueType>(__any));
+@@ -563,6 +569,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+   template<typename _ValueType>
+     inline _ValueType* any_cast(any* __any) noexcept
+     {
++      static_assert(!is_void_v<_ValueType>);
++
+       if constexpr (is_object_v<_ValueType>)
+ 	if (__any)
+ 	  return static_cast<_ValueType*>(__any_caster<_ValueType>(__any));
+--- a/libstdc++-v3/include/std/deque
++++ b/libstdc++-v3/include/std/deque
+@@ -68,6 +68,7 @@
+ #include <bits/range_access.h>
+ #include <bits/deque.tcc>
+ 
++#define __glibcxx_want_allocator_traits_is_always_equal
+ #define __glibcxx_want_erase_if
+ #define __glibcxx_want_nonmember_container_access
+ #include <bits/version.h>
+--- a/libstdc++-v3/include/std/format
++++ b/libstdc++-v3/include/std/format
+@@ -3667,8 +3667,6 @@ namespace __format
+ 	{ return {_Format_arg::template _S_to_enum<_Args>()...}; }
+ 
+     public:
+-      basic_format_args() noexcept = default;
+-
+       template<typename... _Args>
+ 	basic_format_args(const _Store<_Args...>& __store) noexcept;
+ 
+@@ -3851,6 +3849,12 @@ namespace __format
+       : _M_args(__args), _M_out(std::move(__out)), _M_loc(__loc)
+       { }
+ 
++      // _GLIBCXX_RESOLVE_LIB_DEFECTS
++      // 4061. Should std::basic_format_context be
++      //       default-constructible/copyable/movable?
++      basic_format_context(const basic_format_context&) = delete;
++      basic_format_context& operator=(const basic_format_context&) = delete;
++
+       template<typename _Out2, typename _CharT2, typename _Context2>
+ 	friend _Out2
+ 	__format::__do_vformat_to(_Out2, basic_string_view<_CharT2>,
+@@ -3858,7 +3862,6 @@ namespace __format
+ 				  const locale*);
+ 
+     public:
+-      basic_format_context() = default;
+       ~basic_format_context() = default;
+ 
+       using iterator = _Out;
+--- a/libstdc++-v3/include/std/forward_list
++++ b/libstdc++-v3/include/std/forward_list
+@@ -45,6 +45,7 @@
+ # include <debug/forward_list>
+ #endif
+ 
++#define __glibcxx_want_allocator_traits_is_always_equal
+ #define __glibcxx_want_erase_if
+ #define __glibcxx_want_incomplete_container_elements
+ #define __glibcxx_want_list_remove_return_type
+--- a/libstdc++-v3/include/std/functional
++++ b/libstdc++-v3/include/std/functional
+@@ -944,7 +944,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+ 	noexcept(is_nothrow_invocable_v<__like_t<_Self, _Fd>,
+ 					__like_t<_Self, _BoundArgs>..., _CallArgs...>)
+ 	{
+-	  return _S_call(std::forward<_Self>(__self), _BoundIndices(),
++	  return _S_call(__like_t<_Self, _Bind_front>(__self), _BoundIndices(),
+ 			 std::forward<_CallArgs>(__call_args)...);
+ 	}
+ #else
+@@ -1072,7 +1072,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+ 	noexcept(is_nothrow_invocable_v<__like_t<_Self, _Fd>,
+ 					_CallArgs..., __like_t<_Self, _BoundArgs>...>)
+ 	{
+-	  return _S_call(std::forward<_Self>(__self), _BoundIndices(),
++	  return _S_call(__like_t<_Self, _Bind_back>(__self), _BoundIndices(),
+ 			 std::forward<_CallArgs>(__call_args)...);
+ 	}
+ 
+--- a/libstdc++-v3/include/std/istream
++++ b/libstdc++-v3/include/std/istream
+@@ -1069,7 +1069,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+   // 2328. Rvalue stream extraction should use perfect forwarding
+   // 1203. More useful rvalue stream insertion
+ 
+-#if __cpp_concepts >= 201907L
++#if __cpp_concepts >= 201907L && __glibcxx_type_trait_variable_templates
+   template<typename _Is, typename _Tp>
+     requires __derived_from_ios_base<_Is>
+       && requires (_Is& __is, _Tp&& __t) { __is >> std::forward<_Tp>(__t); }
+--- a/libstdc++-v3/include/std/list
++++ b/libstdc++-v3/include/std/list
+@@ -69,6 +69,7 @@
+ # include <debug/list>
+ #endif
+ 
++#define __glibcxx_want_allocator_traits_is_always_equal
+ #define __glibcxx_want_erase_if
+ #define __glibcxx_want_incomplete_container_elements
+ #define __glibcxx_want_list_remove_return_type
+--- a/libstdc++-v3/include/std/map
++++ b/libstdc++-v3/include/std/map
+@@ -69,6 +69,7 @@
+ # include <debug/map>
+ #endif
+ 
++#define __glibcxx_want_allocator_traits_is_always_equal
+ #define __glibcxx_want_erase_if
+ #define __glibcxx_want_generic_associative_lookup
+ #define __glibcxx_want_map_try_emplace
+--- a/libstdc++-v3/include/std/ostream
++++ b/libstdc++-v3/include/std/ostream
+@@ -768,7 +768,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+   // _GLIBCXX_RESOLVE_LIB_DEFECTS
+   // 1203. More useful rvalue stream insertion
+ 
+-#if __cpp_concepts >= 201907L
++#if __cpp_concepts >= 201907L && __glibcxx_type_trait_variable_templates
+   // Use concepts if possible because they're cheaper to evaluate.
+   template<typename _Tp>
+     concept __derived_from_ios_base = is_class_v<_Tp>
+--- a/libstdc++-v3/include/std/ranges
++++ b/libstdc++-v3/include/std/ranges
+@@ -1032,7 +1032,7 @@ namespace views::__adaptor
+ 	    return _Adaptor{}(std::forward<_Range>(__r),
+ 			      std::forward<decltype(__args)>(__args)...);
+ 	  };
+-	  return std::apply(__forwarder, std::forward<_Self>(__self)._M_args);
++	  return std::apply(__forwarder, __like_t<_Self, _Partial>(__self)._M_args);
+ 	}
+ #else
+       template<typename _Range>
+@@ -1081,7 +1081,10 @@ namespace views::__adaptor
+ 	requires __adaptor_invocable<_Adaptor, _Range, __like_t<_Self, _Arg>>
+ 	constexpr auto
+ 	operator()(this _Self&& __self, _Range&& __r)
+-	{ return _Adaptor{}(std::forward<_Range>(__r), std::forward<_Self>(__self)._M_arg); }
++	{
++	  return _Adaptor{}(std::forward<_Range>(__r),
++			    __like_t<_Self, _Partial>(__self)._M_arg);
++	}
+ #else
+       template<typename _Range>
+ 	requires __adaptor_invocable<_Adaptor, _Range, const _Arg&>
+@@ -1184,8 +1187,8 @@ namespace views::__adaptor
+ 	constexpr auto
+ 	operator()(this _Self&& __self, _Range&& __r)
+ 	{
+-	  return (std::forward<_Self>(__self)._M_rhs
+-		  (std::forward<_Self>(__self)._M_lhs
++	  return (__like_t<_Self, _Pipe>(__self)._M_rhs
++		  (__like_t<_Self, _Pipe>(__self)._M_lhs
+ 		   (std::forward<_Range>(__r))));
+ 	}
+ #else
+--- a/libstdc++-v3/include/std/scoped_allocator
++++ b/libstdc++-v3/include/std/scoped_allocator
+@@ -43,6 +43,9 @@
+ # include <bits/uses_allocator_args.h>
+ #endif
+ 
++#define __glibcxx_want_allocator_traits_is_always_equal
++#include <bits/version.h>
++
+ namespace std _GLIBCXX_VISIBILITY(default)
+ {
+ _GLIBCXX_BEGIN_NAMESPACE_VERSION
+--- a/libstdc++-v3/include/std/set
++++ b/libstdc++-v3/include/std/set
+@@ -69,6 +69,7 @@
+ # include <debug/set>
+ #endif
+ 
++#define __glibcxx_want_allocator_traits_is_always_equal
+ #define __glibcxx_want_erase_if
+ #define __glibcxx_want_generic_associative_lookup
+ #define __glibcxx_want_node_extract
+--- a/libstdc++-v3/include/std/string
++++ b/libstdc++-v3/include/std/string
+@@ -54,6 +54,7 @@
+ #include <bits/basic_string.h>
+ #include <bits/basic_string.tcc>
+ 
++#define __glibcxx_want_allocator_traits_is_always_equal
+ #define __glibcxx_want_constexpr_char_traits
+ #define __glibcxx_want_constexpr_string
+ #define __glibcxx_want_erase_if
+--- a/libstdc++-v3/include/std/unordered_map
++++ b/libstdc++-v3/include/std/unordered_map
+@@ -46,6 +46,7 @@
+ # include <debug/unordered_map>
+ #endif
+ 
++#define __glibcxx_want_allocator_traits_is_always_equal
+ #define __glibcxx_want_erase_if
+ #define __glibcxx_want_generic_unordered_lookup
+ #define __glibcxx_want_node_extract
+--- a/libstdc++-v3/include/std/unordered_set
++++ b/libstdc++-v3/include/std/unordered_set
+@@ -46,6 +46,7 @@
+ # include <debug/unordered_set>
+ #endif
+ 
++#define __glibcxx_want_allocator_traits_is_always_equal
+ #define __glibcxx_want_erase_if
+ #define __glibcxx_want_generic_unordered_lookup
+ #define __glibcxx_want_node_extract
+--- a/libstdc++-v3/include/std/variant
++++ b/libstdc++-v3/include/std/variant
+@@ -490,7 +490,7 @@ namespace __variant
+       constexpr void
+       _M_reset()
+       {
+-	if (!_M_valid()) [[unlikely]]
++	if (!_M_valid()) [[__unlikely__]]
+ 	  return;
+ 
+ 	std::__do_visit<void>([](auto&& __this_mem) mutable
+@@ -1374,10 +1374,13 @@ namespace __variant
+ 
+       static_assert(sizeof...(_Types) > 0,
+ 		    "variant must have at least one alternative");
+-      static_assert(!(std::is_reference_v<_Types> || ...),
+-		    "variant must have no reference alternative");
+-      static_assert(!(std::is_void_v<_Types> || ...),
+-		    "variant must have no void alternative");
++#ifdef __STRICT_ANSI__
++      static_assert(((std::is_object_v<_Types> && !is_array_v<_Types>) && ...),
++		    "variant alternatives must be non-array object types");
++#else
++      static_assert((std::is_object_v<_Types> && ...),
++		    "variant alternatives must be object types");
++#endif
+ 
+       using _Base = __detail::__variant::_Variant_base<_Types...>;
+ 
+--- a/libstdc++-v3/include/std/vector
++++ b/libstdc++-v3/include/std/vector
+@@ -76,6 +76,7 @@
+ # include <debug/vector>
+ #endif
+ 
++#define __glibcxx_want_allocator_traits_is_always_equal
+ #define __glibcxx_want_constexpr_vector
+ #define __glibcxx_want_erase_if
+ #define __glibcxx_want_incomplete_container_elements
+--- a/libstdc++-v3/include/tr2/dynamic_bitset
++++ b/libstdc++-v3/include/tr2/dynamic_bitset
+@@ -815,10 +815,7 @@ namespace tr2
+       operator>>=(size_type __pos)
+       {
+ 	if (__builtin_expect(__pos < this->_M_Nb, 1))
+-	  {
+-	    this->_M_do_right_shift(__pos);
+-	    this->_M_do_sanitize();
+-	  }
++	  this->_M_do_right_shift(__pos);
+ 	else
+ 	  this->_M_do_reset();
+ 	return *this;
+--- a/libstdc++-v3/include/tr2/dynamic_bitset.tcc
++++ b/libstdc++-v3/include/tr2/dynamic_bitset.tcc
+@@ -60,8 +60,7 @@ namespace tr2
+ 	      this->_M_w[__wshift] = this->_M_w[0] << __offset;
+ 	    }
+ 
+-	  //// std::fill(this->_M_w.begin(), this->_M_w.begin() + __wshift,
+-	  ////          static_cast<_WordT>(0));
++	  std::fill_n(this->_M_w.begin(), __wshift, _WordT(0));
+ 	}
+     }
+ 
+@@ -88,8 +87,7 @@ namespace tr2
+ 	      this->_M_w[__limit] = this->_M_w[_M_w.size()-1] >> __offset;
+ 	    }
+ 
+-	  ////std::fill(this->_M_w.begin() + __limit + 1, this->_M_w.end(),
+-	  ////          static_cast<_WordT>(0));
++	  std::fill_n(this->_M_w.end() - __wshift, __wshift, _WordT(0));
+ 	}
+     }
+ 
+--- a/libstdc++-v3/src/c++17/fs_ops.cc
++++ b/libstdc++-v3/src/c++17/fs_ops.cc
+@@ -350,7 +350,7 @@ fs::copy(const path& from, const path& to, copy_options options,
+   f = make_file_status(from_st);
+ 
+   if (exists(t) && !is_other(t) && !is_other(f)
+-      && to_st.st_dev == from_st.st_dev && to_st.st_ino == from_st.st_ino)
++      && fs::equiv_files(from.c_str(), from_st, to.c_str(), to_st, ec))
+     {
+       ec = std::make_error_code(std::errc::file_exists);
+       return;
+@@ -822,6 +822,77 @@ fs::equivalent(const path& p1, const path& p2)
+   return result;
+ }
+ 
++#if _GLIBCXX_FILESYSTEM_IS_WINDOWS
++namespace
++{
++  // An RAII type that opens a handle for an existing file.
++  struct auto_win_file_handle
++  {
++    explicit
++    auto_win_file_handle(const wchar_t* p, std::error_code& ec) noexcept
++    : handle(CreateFileW(p, 0,
++			 FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
++			 0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0)),
++      ec(ec)
++    {
++      if (handle == INVALID_HANDLE_VALUE)
++	ec = std::__last_system_error();
++    }
++
++    ~auto_win_file_handle()
++    { if (*this) CloseHandle(handle); }
++
++    explicit operator bool() const noexcept
++    { return handle != INVALID_HANDLE_VALUE; }
++
++    bool get_info() noexcept
++    {
++      if (GetFileInformationByHandle(handle, &info))
++	return true;
++      ec = std::__last_system_error();
++      return false;
++    }
++
++    HANDLE handle;
++    BY_HANDLE_FILE_INFORMATION info;
++    // Like errno, we only set this on error and never clear it.
++    // This propagates an error_code to the caller when something goes wrong,
++    // but the caller should not assume a non-zero ec means an error happened
++    // unless they explicitly cleared it before passing it to our constructor.
++    std::error_code& ec;
++  };
++}
++#endif
++
++#ifdef _GLIBCXX_HAVE_SYS_STAT_H
++#ifdef NEED_DO_COPY_FILE // Only define this once, not in cow-fs_ops.o too
++bool
++fs::equiv_files([[maybe_unused]] const char_type* p1, const stat_type& st1,
++		[[maybe_unused]] const char_type* p2, const stat_type& st2,
++		[[maybe_unused]] error_code& ec)
++{
++#if ! _GLIBCXX_FILESYSTEM_IS_WINDOWS
++  // For POSIX the device ID and inode number uniquely identify a file.
++  return st1.st_dev == st2.st_dev && st1.st_ino == st2.st_ino;
++#else
++  // For Windows st_ino is not set, so can't be used to distinguish files.
++  // We can compare modes and device IDs as a cheap initial check:
++  if (st1.st_mode != st2.st_mode || st1.st_dev != st2.st_dev)
++    return false;
++
++  // Use GetFileInformationByHandle to get more info about the files.
++  if (auto_win_file_handle h1{p1, ec})
++    if (auto_win_file_handle h2{p2, ec})
++      if (h1.get_info() && h2.get_info())
++	return h1.info.dwVolumeSerialNumber == h2.info.dwVolumeSerialNumber
++		 && h1.info.nFileIndexHigh == h2.info.nFileIndexHigh
++		 && h1.info.nFileIndexLow == h2.info.nFileIndexLow;
++  return false;
++#endif // _GLIBCXX_FILESYSTEM_IS_WINDOWS
++}
++#endif // NEED_DO_COPY_FILE
++#endif // _GLIBCXX_HAVE_SYS_STAT_H
++
+ bool
+ fs::equivalent(const path& p1, const path& p2, error_code& ec) noexcept
+ {
+@@ -853,49 +924,7 @@ fs::equivalent(const path& p1, const path& p2, error_code& ec) noexcept
+       ec.clear();
+       if (is_other(s1) || is_other(s2))
+ 	return false;
+-#if _GLIBCXX_FILESYSTEM_IS_WINDOWS
+-      // st_ino is not set, so can't be used to distinguish files
+-      if (st1.st_mode != st2.st_mode || st1.st_dev != st2.st_dev)
+-	return false;
+-
+-      struct auto_handle {
+-	explicit auto_handle(const path& p_)
+-	: handle(CreateFileW(p_.c_str(), 0,
+-	      FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+-	      0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0))
+-	{ }
+-
+-	~auto_handle()
+-	{ if (*this) CloseHandle(handle); }
+-
+-	explicit operator bool() const
+-	{ return handle != INVALID_HANDLE_VALUE; }
+-
+-	bool get_info()
+-	{ return GetFileInformationByHandle(handle, &info); }
+-
+-	HANDLE handle;
+-	BY_HANDLE_FILE_INFORMATION info;
+-      };
+-      auto_handle h1(p1);
+-      auto_handle h2(p2);
+-      if (!h1 || !h2)
+-	{
+-	  if (!h1 && !h2)
+-	    ec = __last_system_error();
+-	  return false;
+-	}
+-      if (!h1.get_info() || !h2.get_info())
+-	{
+-	  ec = __last_system_error();
+-	  return false;
+-	}
+-      return h1.info.dwVolumeSerialNumber == h2.info.dwVolumeSerialNumber
+-	&& h1.info.nFileIndexHigh == h2.info.nFileIndexHigh
+-	&& h1.info.nFileIndexLow == h2.info.nFileIndexLow;
+-#else
+-      return st1.st_dev == st2.st_dev && st1.st_ino == st2.st_ino;
+-#endif
++      return fs::equiv_files(p1.c_str(), st1, p2.c_str(), st2, ec);
+     }
+   else if (!exists(s1) || !exists(s2))
+     ec = std::make_error_code(std::errc::no_such_file_or_directory);
+@@ -982,7 +1011,15 @@ fs::hard_link_count(const path& p)
+ std::uintmax_t
+ fs::hard_link_count(const path& p, error_code& ec) noexcept
+ {
+-#ifdef _GLIBCXX_HAVE_SYS_STAT_H
++#if _GLIBCXX_FILESYSTEM_IS_WINDOWS
++  auto_win_file_handle h(p.c_str(), ec);
++  if (h && h.get_info())
++    {
++      ec.clear();
++      return static_cast<uintmax_t>(h.info.nNumberOfLinks);
++    }
++  return static_cast<uintmax_t>(-1);
++#elif defined _GLIBCXX_HAVE_SYS_STAT_H
+   return do_stat(p, ec, std::mem_fn(&stat_type::st_nlink),
+ 		 static_cast<uintmax_t>(-1));
+ #else
+--- a/libstdc++-v3/src/filesystem/ops-common.h
++++ b/libstdc++-v3/src/filesystem/ops-common.h
+@@ -303,7 +303,6 @@ namespace __gnu_posix
+   {
+     bool skip, update, overwrite;
+   };
+-
+ #endif // _GLIBCXX_HAVE_SYS_STAT_H
+ 
+ } // namespace filesystem
+@@ -327,6 +326,12 @@ _GLIBCXX_BEGIN_NAMESPACE_FILESYSTEM
+ 	   std::error_code&);
+ 
+ 
++  // Test whether two files are the same file.
++  bool
++  equiv_files(const char_type*, const stat_type&,
++	      const char_type*, const stat_type&,
++	      error_code&);
++
+   inline file_type
+   make_file_type(const stat_type& st) noexcept
+   {
+@@ -400,6 +405,7 @@ _GLIBCXX_BEGIN_NAMESPACE_FILESYSTEM
+     return true;
+   }
+ #endif
++
+ #if defined _GLIBCXX_USE_SENDFILE && ! defined _GLIBCXX_FILESYSTEM_IS_WINDOWS
+   bool
+   copy_file_sendfile(int fd_in, int fd_out, size_t length) noexcept
+@@ -428,6 +434,7 @@ _GLIBCXX_BEGIN_NAMESPACE_FILESYSTEM
+     return true;
+   }
+ #endif
++
+   bool
+   do_copy_file(const char_type* from, const char_type* to,
+ 	       std::filesystem::copy_options_existing_file options,
+@@ -489,8 +496,7 @@ _GLIBCXX_BEGIN_NAMESPACE_FILESYSTEM
+ 	    return false;
+ 	  }
+ 
+-	if (to_st->st_dev == from_st->st_dev
+-	    && to_st->st_ino == from_st->st_ino)
++	if (equiv_files(from, *from_st, to, *to_st, ec))
+ 	  {
+ 	    ec = std::make_error_code(std::errc::file_exists);
+ 	    return false;
+--- a/libstdc++-v3/src/filesystem/ops.cc
++++ b/libstdc++-v3/src/filesystem/ops.cc
+@@ -257,6 +257,20 @@ namespace
+ 
+ } // namespace
+ 
++#ifdef _GLIBCXX_HAVE_SYS_STAT_H
++#ifdef NEED_DO_COPY_FILE // Only define this once, not in cow-ops.o too
++bool
++fs::equiv_files([[maybe_unused]] const char_type* p1, const stat_type& st1,
++		[[maybe_unused]] const char_type* p2, const stat_type& st2,
++		[[maybe_unused]] error_code& ec)
++{
++  // For POSIX the device ID and inode number uniquely identify a file.
++  // This doesn't work on Windows (see equiv_files in src/c++17/fs_ops.cc).
++  return st1.st_dev == st2.st_dev && st1.st_ino == st2.st_ino;
++}
++#endif
++#endif
++
+ void
+ fs::copy(const path& from, const path& to, copy_options options,
+ 	 error_code& ec) noexcept
+@@ -293,7 +307,7 @@ fs::copy(const path& from, const path& to, copy_options options,
+   f = make_file_status(from_st);
+ 
+   if (exists(t) && !is_other(t) && !is_other(f)
+-      && to_st.st_dev == from_st.st_dev && to_st.st_ino == from_st.st_ino)
++      && fs::equiv_files(from.c_str(), from_st, to.c_str(), to_st, ec))
+     {
+       ec = std::make_error_code(std::errc::file_exists);
+       return;
+@@ -763,7 +777,7 @@ fs::equivalent(const path& p1, const path& p2, error_code& ec) noexcept
+       ec.clear();
+       if (is_other(s1) || is_other(s2))
+ 	return false;
+-      return st1.st_dev == st2.st_dev && st1.st_ino == st2.st_ino;
++      return fs::equiv_files(p1.c_str(), st1, p2.c_str(), st2, ec);
+     }
+   else if (!exists(s1) || !exists(s2))
+     ec = std::make_error_code(std::errc::no_such_file_or_directory);
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/20_util/any/misc/lwg3305.cc
+@@ -0,0 +1,15 @@
++// { dg-do compile { target c++17 } }
++
++// LWG 3305. any_cast<void>
++
++#include <any>
++
++void
++test_lwg3305()
++{
++  std::any a;
++  (void) std::any_cast<const void>(&a); // { dg-error "here" }
++  const std::any a2;
++  (void) std::any_cast<volatile void>(&a2); // { dg-error "here" }
++}
++// { dg-error "static assertion failed" "" { target *-*-* } 0 }
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/20_util/function_objects/bind_back/116038.cc
+@@ -0,0 +1,27 @@
++// PR libstdc++/116038
++// { dg-do compile { target c++23 } }
++
++#include <functional>
++#include <utility>
++
++struct A { };
++struct B { };
++
++template<class... Ts>
++struct overloaded : private Ts... {
++  overloaded(Ts...);
++  using Ts::operator()...;
++};
++
++int apply_a(A, int);
++int apply_b(B, int);
++
++int main() {
++  overloaded o = { std::bind_back(apply_a, 1),
++		   std::bind_back(apply_b, 2) };
++  A a;
++  o(a);
++  std::as_const(o)(a);
++  std::move(o)(a);
++  std::move(std::as_const(o))(a);
++}
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/20_util/function_objects/bind_front/116038.cc
+@@ -0,0 +1,27 @@
++// PR libstdc++/116038
++// { dg-do compile { target c++20 } }
++
++#include <functional>
++#include <utility>
++
++struct A { };
++struct B { };
++
++template<class... Ts>
++struct overloaded : private Ts... {
++  overloaded(Ts...);
++  using Ts::operator()...;
++};
++
++int apply_a(int, A);
++int apply_b(int, B);
++
++int main() {
++  overloaded o = { std::bind_front(apply_a, 1),
++		   std::bind_front(apply_b, 2) };
++  A a;
++  o(a);
++  std::as_const(o)(a);
++  std::move(o)(a);
++  std::move(std::as_const(o))(a);
++}
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/20_util/headers/memory/version.cc
+@@ -0,0 +1,8 @@
++// { dg-do preprocess { target c++17 } }
++// { dg-add-options no_pch }
++
++#include <memory>
++
++#if __cpp_lib_allocator_traits_is_always_equal != 201411L
++# error "Feature-test macro __cpp_lib_allocator_traits_is_always_equal has wrong value in <version>"
++#endif
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/20_util/scoped_allocator/version.cc
+@@ -0,0 +1,8 @@
++// { dg-do preprocess { target c++17 } }
++// { dg-add-options no_pch }
++
++#include <scoped_allocator>
++
++#if __cpp_lib_allocator_traits_is_always_equal != 201411L
++# error "Feature-test macro __cpp_lib_allocator_traits_is_always_equal has wrong value in <version>"
++#endif
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/20_util/variant/types_neg.cc
+@@ -0,0 +1,18 @@
++// { dg-do compile { target c++17 } }
++// { dg-add-options strict_std }
++
++# include <variant>
++
++std::variant<> v0; // { dg-error "here" }
++// { dg-error "must have at least one alternative" "" { target *-*-* } 0 }
++std::variant<int, void> v1; // { dg-error "here" }
++std::variant<int, const void> v2; // { dg-error "here" }
++std::variant<int, int&> v3; // { dg-error "here" }
++std::variant<int, void()> v4; // { dg-error "here" }
++std::variant<int, int[]> v5; // { dg-error "here" }
++std::variant<int, int[1]> v6; // { dg-error "here" }
++// { dg-error "must be non-array object types" "" { target *-*-* } 0 }
++
++// All of variant's base classes are instantiated before checking any
++// static_assert, so we get lots of errors before the expected errors above.
++// { dg-excess-errors "" }
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/21_strings/headers/string/version.cc
+@@ -0,0 +1,8 @@
++// { dg-do preprocess { target c++17 } }
++// { dg-add-options no_pch }
++
++#include <string>
++
++#if __cpp_lib_allocator_traits_is_always_equal != 201411L
++# error "Feature-test macro __cpp_lib_allocator_traits_is_always_equal has wrong value in <version>"
++#endif
+--- a/libstdc++-v3/testsuite/22_locale/locale/cons/12438.cc
++++ b/libstdc++-v3/testsuite/22_locale/locale/cons/12438.cc
+@@ -45,7 +45,7 @@ void test01(int iters)
+ 	  locale loc2 = locale("");
+ 	  VERIFY( !has_facet<MyFacet>(loc2) );
+ 	  
+-	  loc1.combine<MyFacet>(loc2);
++	  loc1.combine<MyFacet>(loc2); // { dg-warning "nodiscard" "" { target c++17 } }
+ 	  VERIFY( false );
+ 	}
+       catch (std::runtime_error&)
+--- a/libstdc++-v3/testsuite/22_locale/locale/cons/2.cc
++++ b/libstdc++-v3/testsuite/22_locale/locale/cons/2.cc
+@@ -68,7 +68,7 @@ void test01()
+     { VERIFY( false ); }
+ 
+   try 
+-    { use_facet<gnu_facet>(loc02); }
++    { (void) use_facet<gnu_facet>(loc02); }
+   catch(bad_cast& obj)
+     { VERIFY( true ); }
+   catch(...)
+--- a/libstdc++-v3/testsuite/22_locale/locale/cons/unicode.cc
++++ b/libstdc++-v3/testsuite/22_locale/locale/cons/unicode.cc
+@@ -79,7 +79,7 @@ void test01()
+     { VERIFY( false ); }
+ 
+   try 
+-    { use_facet<gnu_facet>(loc13); }
++    { (void) use_facet<gnu_facet>(loc13); }
+   catch(bad_cast& obj)
+     { VERIFY( true ); }
+   catch(...)
+--- a/libstdc++-v3/testsuite/22_locale/locale/operations/2.cc
++++ b/libstdc++-v3/testsuite/22_locale/locale/operations/2.cc
+@@ -48,7 +48,7 @@ void test02()
+   // Derivation, MF check.
+   locale loc_gnu(loc_c, new gnu_collate);
+   gnu_count = 0;
+-  loc_gnu(s01, s02);
++  loc_gnu(s01, s02); // { dg-warning "nodiscard" "" { target c++17 } }
+   VERIFY( gnu_count == 1 );
+ }
+ 
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/23_containers/deque/version.cc
+@@ -0,0 +1,8 @@
++// { dg-do preprocess { target c++17 } }
++// { dg-add-options no_pch }
++
++#include <deque>
++
++#if __cpp_lib_allocator_traits_is_always_equal != 201411L
++# error "Feature-test macro __cpp_lib_allocator_traits_is_always_equal has wrong value in <version>"
++#endif
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/23_containers/forward_list/version.cc
+@@ -0,0 +1,8 @@
++// { dg-do preprocess { target c++17 } }
++// { dg-add-options no_pch }
++
++#include <forward_list>
++
++#if __cpp_lib_allocator_traits_is_always_equal != 201411L
++# error "Feature-test macro __cpp_lib_allocator_traits_is_always_equal has wrong value in <version>"
++#endif
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/23_containers/list/version.cc
+@@ -0,0 +1,8 @@
++// { dg-do preprocess { target c++17 } }
++// { dg-add-options no_pch }
++
++#include <list>
++
++#if __cpp_lib_allocator_traits_is_always_equal != 201411L
++# error "Feature-test macro __cpp_lib_allocator_traits_is_always_equal has wrong value in <version>"
++#endif
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/23_containers/map/version.cc
+@@ -0,0 +1,8 @@
++// { dg-do preprocess { target c++17 } }
++// { dg-add-options no_pch }
++
++#include <map>
++
++#if __cpp_lib_allocator_traits_is_always_equal != 201411L
++# error "Feature-test macro __cpp_lib_allocator_traits_is_always_equal has wrong value in <version>"
++#endif
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/23_containers/set/version.cc
+@@ -0,0 +1,8 @@
++// { dg-do preprocess { target c++17 } }
++// { dg-add-options no_pch }
++
++#include <set>
++
++#if __cpp_lib_allocator_traits_is_always_equal != 201411L
++# error "Feature-test macro __cpp_lib_allocator_traits_is_always_equal has wrong value in <version>"
++#endif
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/23_containers/unordered_map/version.cc
+@@ -0,0 +1,8 @@
++// { dg-do preprocess { target c++17 } }
++// { dg-add-options no_pch }
++
++#include <unordered_map>
++
++#if __cpp_lib_allocator_traits_is_always_equal != 201411L
++# error "Feature-test macro __cpp_lib_allocator_traits_is_always_equal has wrong value in <version>"
++#endif
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/23_containers/unordered_set/version.cc
+@@ -0,0 +1,8 @@
++// { dg-do preprocess { target c++17 } }
++// { dg-add-options no_pch }
++
++#include <unordered_set>
++
++#if __cpp_lib_allocator_traits_is_always_equal != 201411L
++# error "Feature-test macro __cpp_lib_allocator_traits_is_always_equal has wrong value in <version>"
++#endif
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/23_containers/vector/allocator/115854.cc
+@@ -0,0 +1,10 @@
++// { dg-do compile { target c++11 } }
++
++#include <vector>
++#include <testsuite_allocator.h>
++
++__gnu_test::ExplicitConsAlloc<int> alloc;
++std::vector<int, __gnu_test::ExplicitConsAlloc<int>> v;
++std::vector<int, __gnu_test::ExplicitConsAlloc<int>> v1(alloc);
++std::vector<int, __gnu_test::ExplicitConsAlloc<int>> v2(v1, alloc);
++std::vector<int, __gnu_test::ExplicitConsAlloc<int>> v3(std::move(v1), alloc);
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/23_containers/vector/bool/allocator/115854.cc
+@@ -0,0 +1,10 @@
++// { dg-do compile { target c++11 } }
++
++#include <vector>
++#include <testsuite_allocator.h>
++
++__gnu_test::ExplicitConsAlloc<bool> alloc;
++std::vector<bool, __gnu_test::ExplicitConsAlloc<bool>> v;
++std::vector<bool, __gnu_test::ExplicitConsAlloc<bool>> v1(alloc);
++std::vector<bool, __gnu_test::ExplicitConsAlloc<bool>> v2(v1, alloc);
++std::vector<bool, __gnu_test::ExplicitConsAlloc<bool>> v3(std::move(v1), alloc);
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/23_containers/vector/version.cc
+@@ -0,0 +1,8 @@
++// { dg-do preprocess { target c++17 } }
++// { dg-add-options no_pch }
++
++#include <vector>
++
++#if __cpp_lib_allocator_traits_is_always_equal != 201411L
++# error "Feature-test macro __cpp_lib_allocator_traits_is_always_equal has wrong value in <version>"
++#endif
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/24_iterators/move_iterator/lwg3736.cc
+@@ -0,0 +1,52 @@
++// { dg-do compile { target c++20 } }
++
++// 3736.  move_iterator missing disable_sized_sentinel_for specialization
++
++#include <iterator>
++
++template<typename Iter> using MoveIter = std::move_iterator<Iter>;
++
++using std::sized_sentinel_for;
++using std::disable_sized_sentinel_for;
++
++// These assertions always passed, even without LWG 3736:
++static_assert(sized_sentinel_for<MoveIter<int*>, MoveIter<int*>>);
++static_assert(sized_sentinel_for<MoveIter<int*>, MoveIter<const int*>>);
++static_assert(not sized_sentinel_for<MoveIter<int*>, MoveIter<long*>>);
++static_assert(not sized_sentinel_for<MoveIter<int*>, std::default_sentinel_t>);
++static_assert(not disable_sized_sentinel_for<MoveIter<int*>, MoveIter<int*>>);
++
++// These types don't satisfy sized_sentinel_for anyway (because the subtraction
++// is ill-formed) but LWG 3736 makes the variable template explicitly false:
++static_assert(disable_sized_sentinel_for<MoveIter<int*>, MoveIter<long*>>);
++
++struct Iter
++{
++  using iterator_category = std::random_access_iterator_tag;
++  using value_type = int;
++  using pointer = int*;
++  using reference = int&;
++  using difference_type = long;
++
++  Iter() = default;
++  Iter& operator++();
++  Iter operator++(int);
++  Iter& operator--();
++  Iter operator--(int);
++  reference operator*() const;
++  pointer operator->() const;
++  Iter& operator+=(difference_type);
++  Iter& operator-=(difference_type);
++  friend Iter operator+(Iter, difference_type);
++  friend Iter operator+(difference_type, Iter);
++  friend Iter operator-(Iter, difference_type);
++  friend difference_type operator-(Iter, Iter);
++  bool operator==(Iter) const;
++};
++
++// Specialize the variable template so that Iter is not its own sized sentinel:
++template<> constexpr bool std::disable_sized_sentinel_for<Iter, Iter> = true;
++static_assert( not sized_sentinel_for<Iter, Iter> );
++
++// LWG 3736 means that affects std::move_iterator<Iter> as well:
++static_assert( not sized_sentinel_for<MoveIter<Iter>, MoveIter<Iter>> );
+--- a/libstdc++-v3/testsuite/25_algorithms/headers/algorithm/synopsis.cc
++++ b/libstdc++-v3/testsuite/25_algorithms/headers/algorithm/synopsis.cc
+@@ -19,6 +19,14 @@
+ 
+ #include <algorithm>
+ 
++#if __cplusplus >= 202002L
++#ifndef __cpp_lib_ranges
++# error "Feature test macro for ranges is missing in <algorithm>"
++#elif __cpp_lib_ranges < 201911L
++# error "Feature test macro for ranges has wrong value in <algorithm>"
++#endif
++#endif
++
+ namespace std
+  {
+   // 25.1, non-modifying sequence operations:
+--- a/libstdc++-v3/testsuite/27_io/filesystem/operations/copy.cc
++++ b/libstdc++-v3/testsuite/27_io/filesystem/operations/copy.cc
+@@ -216,6 +216,15 @@ test_pr99290()
+   }
+ #endif
+ 
++  // https://github.com/msys2/MSYS2-packages/issues/1937
++  auto copy_opts
++    = fs::copy_options::overwrite_existing | fs::copy_options::recursive;
++  copy(source, dest, copy_opts, ec);
++  VERIFY( !ec );
++
++  auto ch = std::ifstream{dest/"file"}.get();
++  VERIFY( ch == 'a' );
++
+   remove_all(dir);
+ }
+ 
+--- a/libstdc++-v3/testsuite/27_io/filesystem/operations/copy_file.cc
++++ b/libstdc++-v3/testsuite/27_io/filesystem/operations/copy_file.cc
+@@ -76,8 +76,130 @@ test01()
+   remove(to);
+ }
+ 
++void
++test_directory()
++{
++  std::error_code ec;
++
++  auto dir = __gnu_test::nonexistent_path();
++  auto file = __gnu_test::nonexistent_path();
++
++  // error condition: is_regular_file(from) is false
++  create_directory(dir);
++  bool b = copy_file(dir, file, ec);
++  VERIFY( !b );
++  VERIFY( ec == std::errc::invalid_argument );
++  VERIFY( !exists(file) );
++  VERIFY( is_directory(dir) );
++
++  ec = std::make_error_code(std::errc::address_in_use);
++  // error condition: exists(to) is true and is_regular_file(to) is false
++  std::ofstream{file} << "regular file";
++  b = copy_file(file, dir, ec);
++  VERIFY( !b );
++  VERIFY( ec == std::errc::invalid_argument );
++  VERIFY( exists(file) );
++  VERIFY( is_directory(dir) );
++
++  remove(dir);
++  remove(file);
++}
++
++void
++test_existing()
++{
++  using std::filesystem::copy_options;
++  std::error_code ec;
++
++  auto from = __gnu_test::nonexistent_path();
++  auto to = from;
++
++  // error condition: exists(to) is true and equivalent(from, to) is true
++  std::ofstream{from} << "source";
++  bool b = copy_file(from, to, ec);
++  VERIFY( !b );
++  VERIFY( ec == std::errc::file_exists );
++
++  to = __gnu_test::nonexistent_path();
++  std::ofstream{to} << "overwrite me";
++
++  // error condition: exists(to) is true and options == copy_options::none
++  b = copy_file(from, to, ec);
++  VERIFY( !b );
++  VERIFY( ec == std::errc::file_exists );
++  VERIFY( file_size(to) != file_size(from) );
++
++#if __cpp_exceptions
++  try
++  {
++    (void) copy_file(from, to);
++    VERIFY(false);
++  }
++  catch (const std::filesystem::filesystem_error& e)
++  {
++    std::string_view msg = e.what();
++    VERIFY( msg.find(from.string()) != msg.npos );
++    VERIFY( msg.find(to.string()) != msg.npos );
++    VERIFY( e.code() == std::errc::file_exists );
++  }
++  VERIFY( file_size(to) == 12 );
++#endif
++
++  b = copy_file(from, to, copy_options::skip_existing, ec);
++  VERIFY( !b );
++  VERIFY( !ec );
++  VERIFY( file_size(to) != file_size(from) );
++
++  b = copy_file(from, to, copy_options::skip_existing); // doesn't throw
++  VERIFY( !b );
++  VERIFY( file_size(to) != file_size(from) );
++
++  b = copy_file(from, to, copy_options::overwrite_existing, ec);
++  VERIFY( b );
++  VERIFY( !ec );
++  VERIFY( file_size(to) == file_size(from) );
++
++  std::ofstream{to} << "overwrite me again";
++  b = copy_file(from, to, copy_options::overwrite_existing); // doesn't throw
++  VERIFY( b );
++  VERIFY( file_size(to) == file_size(from) );
++
++  ec = std::make_error_code(std::errc::address_in_use);
++  auto time = last_write_time(from);
++  std::ofstream{to} << "touched";
++  last_write_time(to, time + std::chrono::seconds(60));
++  b = copy_file(from, to, copy_options::update_existing, ec);
++  VERIFY( !b );
++  VERIFY( !ec );
++  VERIFY( file_size(to) != file_size(from) );
++
++  b = copy_file(from, to, copy_options::update_existing); // doesn't throw
++  VERIFY( !b );
++  VERIFY( file_size(to) != file_size(from) );
++
++  ec = std::make_error_code(std::errc::address_in_use);
++  time = last_write_time(to);
++  std::ofstream{from} << "touched more recently";
++  last_write_time(from, time + std::chrono::seconds(60));
++  b = copy_file(from, to, copy_options::update_existing, ec);
++  VERIFY( b );
++  VERIFY( !ec );
++  VERIFY( file_size(to) == file_size(from) );
++
++  time = last_write_time(to);
++  std::ofstream{from} << "touched even more recently";
++  last_write_time(from, time + std::chrono::seconds(60));
++  b = copy_file(from, to, copy_options::update_existing); // doesn't throw
++  VERIFY( b );
++  VERIFY( file_size(to) == file_size(from) );
++
++  remove(from);
++  remove(to);
++}
++
+ int
+ main()
+ {
+   test01();
++  test_existing();
+ }
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/27_io/filesystem/operations/hard_link_count.cc
+@@ -0,0 +1,61 @@
++// { dg-do run { target c++17 } }
++// { dg-require-filesystem-ts "" }
++
++#include <filesystem>
++#include <testsuite_hooks.h>
++#include <testsuite_fs.h>
++
++namespace fs = std::filesystem;
++
++void test01()
++{
++  // PR libstdc++/113663
++
++  fs::path p1 = __gnu_test::nonexistent_path();
++  VERIFY( !fs::exists(p1) );
++
++  __gnu_test::scoped_file f1(p1);
++  VERIFY( fs::exists(p1) );
++
++  VERIFY( fs::hard_link_count(p1) == 1 );
++
++  fs::path p2 = __gnu_test::nonexistent_path();
++  VERIFY( !fs::exists(p2) );
++
++  fs::create_hard_link(p1, p2);
++  __gnu_test::scoped_file f2(p2, __gnu_test::scoped_file::adopt_file);
++  VERIFY( fs::exists(p2) );
++
++  VERIFY( fs::hard_link_count(p1) == 2 );
++  VERIFY( fs::hard_link_count(p2) == 2 );
++}
++
++void
++test02()
++{
++  std::error_code ec;
++  fs::path p1 = __gnu_test::nonexistent_path();
++  VERIFY( fs::hard_link_count(p1, ec) == -1 );
++  VERIFY( ec == std::errc::no_such_file_or_directory );
++
++#if __cpp_exceptions
++  try {
++    fs::hard_link_count(p1); // { dg-warning "ignoring return value" }
++    VERIFY( false );
++  } catch (const fs::filesystem_error& e) {
++    VERIFY( e.path1() == p1 );
++    VERIFY( e.path2().empty() );
++  }
++#endif
++
++  __gnu_test::scoped_file f1(p1);
++  fs::hard_link_count(f1.path, ec);  // { dg-warning "ignoring return value" }
++  VERIFY( !ec ); // Should be cleared on success.
++}
++
++int
++main()
++{
++  test01();
++  test02();
++}
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/29_atomics/atomic_float/constinit.cc
+@@ -0,0 +1,3 @@
++// { dg-do compile { target c++20 } }
++#include <atomic>
++constinit std::atomic<float> a(0.0f);
+--- a/libstdc++-v3/testsuite/std/format/arguments/args.cc
++++ b/libstdc++-v3/testsuite/std/format/arguments/args.cc
+@@ -3,6 +3,10 @@
+ #include <format>
+ #include <testsuite_hooks.h>
+ 
++// LWG 4106. basic_format_args should not be default-constructible
++static_assert( ! std::is_default_constructible_v<std::format_args> );
++static_assert( ! std::is_default_constructible_v<std::wformat_args> );
++
+ template<typename Ctx, typename T>
+ bool equals(std::basic_format_arg<Ctx> fmt_arg, T expected) {
+   return std::visit_format_arg([=](auto arg_val) {
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/std/format/context.cc
+@@ -0,0 +1,36 @@
++// { dg-do compile { target c++20 } }
++
++#include <format>
++
++template<typename Context>
++concept format_context_reqs = std::is_destructible_v<Context>
++  && (!std::is_default_constructible_v<Context>)
++  && (!std::is_copy_constructible_v<Context>)
++  && (!std::is_move_constructible_v<Context>)
++  && (!std::is_copy_assignable_v<Context>)
++  && (!std::is_move_assignable_v<Context>)
++  && requires (Context& ctx, const Context& cctx) {
++    typename Context::iterator;
++    typename Context::char_type;
++    requires std::same_as<typename Context::template formatter_type<int>,
++			  std::formatter<int, typename Context::char_type>>;
++    { ctx.locale() } -> std::same_as<std::locale>;
++    { ctx.out() } -> std::same_as<typename Context::iterator>;
++    { ctx.advance_to(ctx.out()) } -> std::same_as<void>;
++    { cctx.arg(1) } -> std::same_as<std::basic_format_arg<Context>>;
++  };
++
++template<typename Out, typename charT>
++constexpr bool
++check(std::basic_format_context<Out, charT>*)
++{
++  using context = std::basic_format_context<Out, charT>;
++  static_assert( format_context_reqs<context> );
++  static_assert( std::is_same_v<typename context::iterator, Out> );
++  static_assert( std::is_same_v<typename context::char_type, charT> );
++  return true;
++}
++
++static_assert( check( (std::format_context*)nullptr) );
++static_assert( check( (std::wformat_context*)nullptr) );
++static_assert( check( (std::basic_format_context<char*, char>*)nullptr) );
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/std/ranges/adaptors/116038.cc
+@@ -0,0 +1,29 @@
++// PR libstdc++/116038
++// { dg-do compile { target c++20 } }
++
++#include <ranges>
++#include <utility>
++
++struct A { };
++struct B { };
++
++template<class... Ts>
++struct overloaded : private Ts... {
++  overloaded(Ts...);
++  using Ts::operator()...;
++};
++
++int x[5];
++struct integralish { operator int() const; } i;
++
++int main() {
++  overloaded o1 = { std::views::drop(i) };
++  o1(x);
++  std::move(o1)(x);
++  std::as_const(o1)(x);
++
++  overloaded o2 = { std::views::drop(i) | std::views::take(i) };
++  o2(x);
++  std::move(o2)(x);
++  std::as_const(o1)(x);
++}
+--- a/libstdc++-v3/testsuite/std/time/syn_c++20.cc
++++ b/libstdc++-v3/testsuite/std/time/syn_c++20.cc
+@@ -20,9 +20,16 @@
+ 
+ #include <chrono>
+ 
++// std::chrono::tzdb is not defined for the old std::string ABI.
++#if _GLIBCXX_USE_CXX_ABI
++# define EXPECTED_VALUE 201907L
++#else
++# define EXPECTED_VALUE 201611L
++#endif
++
+ #ifndef __cpp_lib_chrono
+ # error "Feature test macro for chrono is missing in <chrono>"
+-#elif __cpp_lib_chrono < 201907L
++#elif __cpp_lib_chrono < EXPECTED_VALUE
+ # error "Feature test macro for chrono has wrong value in <chrono>"
+ #endif
+ 
+@@ -94,7 +101,7 @@ namespace __gnu_test
+   using std::chrono::make12;
+   using std::chrono::make24;
+ 
+-#if _GLIBCXX_USE_CXX11_ABI
++#if __cpp_lib_chrono >= 201803L
+   using std::chrono::tzdb;
+   using std::chrono::tzdb_list;
+   using std::chrono::get_tzdb;
+new file mode 100644
+--- /dev/null
++++ b/libstdc++-v3/testsuite/tr2/dynamic_bitset/pr115399.cc
+@@ -0,0 +1,37 @@
++// { dg-do run { target c++11 } }
++
++// PR libstdc++/115399
++// std::tr2::dynamic_bitset shift behaves differently from std::bitset
++
++#include <tr2/dynamic_bitset>
++#include <testsuite_hooks.h>
++
++void
++test_left_shift()
++{
++  std::tr2::dynamic_bitset<> b(65);
++  b[0] = 1;
++  auto b2 = b << 64;
++  VERIFY(b2[64] == 1);
++  VERIFY(b2[0] == 0);
++  b <<= 64;
++  VERIFY( b2 == b );
++}
++
++void
++test_right_shift()
++{
++  std::tr2::dynamic_bitset<> b(65);
++  b[64] = 1;
++  auto b2 = b >> 64;
++  VERIFY(b2[64] == 0);
++  VERIFY(b2[0] == 1);
++  b >>= 64;
++  VERIFY( b2 == b );
++}
++
++int main()
++{
++  test_left_shift();
++  test_right_shift();
++}
+--- a/libstdc++-v3/testsuite/util/testsuite_allocator.h
++++ b/libstdc++-v3/testsuite/util/testsuite_allocator.h
+@@ -154,7 +154,7 @@ namespace __gnu_test
+       tracker_allocator()
+       { }
+ 
+-      tracker_allocator(const tracker_allocator&)
++      tracker_allocator(const tracker_allocator& a) : Alloc(a)
+       { }
+ 
+       ~tracker_allocator()

@@ -1,0 +1,13 @@
+--- a/libstdc++-v3/scripts/run_doxygen
++++ b/libstdc++-v3/scripts/run_doxygen
+@@ -130,7 +130,9 @@ do_latex=false
+ latex_cmd=
+ enabled_sections=
+ generate_tagfile=
+-DATEtext=`date '+%Y-%m-%d'`
++DATE_FMT="+%Y-%m-%d"
++SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(date +%s)}"
++DATEtext=`date -u -d "@$SOURCE_DATE_EPOCH" "$DATE_FMT" 2>/dev/null || date -u -r "$SOURCE_DATE_EPOCH" "$DATE_FMT" 2>/dev/null || date -u "$DATE_FMT"`
+ 
+ # Show how this script is called.
+ echo run_doxygen $*

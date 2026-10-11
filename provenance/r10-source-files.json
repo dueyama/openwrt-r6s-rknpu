@@ -1,0 +1,248 @@
+{
+  "driver/Kconfig": {
+    "bytes": 1197,
+    "modified_from_upstream": true,
+    "original_r10_sha256": "2a0eca3f0c3302e5e674c203a37119b6f6343fd986d19854baa6e23c0ec0ad6f",
+    "public_change": "modification notice only",
+    "sha256": "04a28695ae0744a88d18eea4c5147e691a93099c07e36311181c1fab71d6f536",
+    "upstream_sha256": "b3174781cfb5089a63ff7f7af9fbb3df1eaa4888d150a41d5a7a19842d64a65a"
+  },
+  "driver/Makefile": {
+    "bytes": 635,
+    "modified_from_upstream": true,
+    "original_r10_sha256": "fdc69a5195e2d7a51d2ca5774c476096a0bf546f50fc883b11e5bd9dcda5e2b1",
+    "public_change": "modification notice only",
+    "sha256": "9f4dae36b35698a18fc83a67ff6ae28ca0c869c243508540ab22b244fcba3ee8",
+    "upstream_sha256": "d9cd4b33e084684916856ea0d6d50e107864fd991711a344210edbf99e41f5c4"
+  },
+  "driver/include/r6s_busy.h": {
+    "bytes": 871,
+    "modified_from_upstream": true,
+    "original_r10_sha256": "c60784babca72bca8760badfc7f7224eea5f45721ae8dd8bb115b68e5788dbcf",
+    "public_change": "modification notice only",
+    "sha256": "3f7c19326e95dd6150519c4c96dafa95bf3a61d8c683d3f4ddac5ad73c92043d",
+    "upstream_sha256": null
+  },
+  "driver/include/r6s_diag.h": {
+    "bytes": 1399,
+    "modified_from_upstream": true,
+    "original_r10_sha256": "22bec848dbe0c305fd5b80d062c6f0fb8b0b0b5a2122195b3a03522ed2e02bf0",
+    "public_change": "modification notice only",
+    "sha256": "f911fb4f542ca4e66310c16ed28baf95b52ac4457a4581eb5b748549e1543bb5",
+    "upstream_sha256": null
+  },
+  "driver/include/r6s_diag_flags.h": {
+    "bytes": 429,
+    "modified_from_upstream": true,
+    "original_r10_sha256": "278fcbb76cb9d329d2a276a8b7462988427932d5c8259c3d3b3e95b7577d4b7a",
+    "public_change": "modification notice only",
+    "sha256": "143cc3e0f0a249ca4b2ae4cfaf4466662183e4defa1caa06aa18c4c2e00838ea",
+    "upstream_sha256": null
+  },
+  "driver/include/r6s_mmio.h": {
+    "bytes": 1336,
+    "modified_from_upstream": true,
+    "original_r10_sha256": "030c77f44fa349416f6cba4a50a29a2169d1f4aa217d83b53e9930cea2a0c0da",
+    "public_change": "modification notice only",
+    "sha256": "ddc93b40586b6d71cc7a0861973c3e3693be76a8a0b3c13abd5dbf9033a2abe5",
+    "upstream_sha256": null
+  },
+  "driver/include/r6s_task_range.h": {
+    "bytes": 3344,
+    "modified_from_upstream": true,
+    "original_r10_sha256": "d4eebd10f321f82d3705ecea6e529e0f80dec124ab4fbb10c9311889a5ee66b0",
+    "public_change": "modification notice only",
+    "sha256": "7f2d4b8cd626ffbe39fef2b21fccefbb84bdc11f8fbe35a53ac57ec3e7067018",
+    "upstream_sha256": null
+  },
+  "driver/include/rknpu_debugger.h": {
+    "bytes": 2233,
+    "modified_from_upstream": false,
+    "original_r10_sha256": "7834989555d11333559098a5f2e3fa07063908d109ddb8aa62c0f619337071f6",
+    "public_change": "none",
+    "sha256": "7834989555d11333559098a5f2e3fa07063908d109ddb8aa62c0f619337071f6",
+    "upstream_sha256": "7834989555d11333559098a5f2e3fa07063908d109ddb8aa62c0f619337071f6"
+  },
+  "driver/include/rknpu_devfreq.h": {
+    "bytes": 1160,
+    "modified_from_upstream": false,
+    "original_r10_sha256": "4f61b69e34dfddd1bd324d9ffc299960a8b5e0ab91e2b547d871bc0f99c53518",
+    "public_change": "none",
+    "sha256": "4f61b69e34dfddd1bd324d9ffc299960a8b5e0ab91e2b547d871bc0f99c53518",
+    "upstream_sha256": "4f61b69e34dfddd1bd324d9ffc299960a8b5e0ab91e2b547d871bc0f99c53518"
+  },
+  "driver/include/rknpu_drv.h": {
+    "bytes": 5449,
+    "modified_from_upstream": true,
+    "original_r10_sha256": "2aa2c7bebdf62d0f7bb898e19437807e3f814222ce522a46c27839294af8983c",
+    "public_change": "modification notice only",
+    "sha256": "c775f8c776a52fa60af090d2f72b15fa421957ddc208f0945d52ac3fc95c1595",
+    "upstream_sha256": "d18c8c38b2eca82a32c9012b74de0d5c276b2cd5a177f401ce8d0c6ed2db5820"
+  },
+  "driver/include/rknpu_fence.h": {
+    "bytes": 523,
+    "modified_from_upstream": false,
+    "original_r10_sha256": "c24e6758fc00b99d81a252bd95c5d80c4ebc1f5f86e6a74df37776d2c80498aa",
+    "public_change": "none",
+    "sha256": "c24e6758fc00b99d81a252bd95c5d80c4ebc1f5f86e6a74df37776d2c80498aa",
+    "upstream_sha256": "c24e6758fc00b99d81a252bd95c5d80c4ebc1f5f86e6a74df37776d2c80498aa"
+  },
+  "driver/include/rknpu_gem.h": {
+    "bytes": 6557,
+    "modified_from_upstream": false,
+    "original_r10_sha256": "2b1505cc42102937859580ff7776f50a881417e7b1409debf469169491120bfa",
+    "public_change": "none",
+    "sha256": "2b1505cc42102937859580ff7776f50a881417e7b1409debf469169491120bfa",
+    "upstream_sha256": "2b1505cc42102937859580ff7776f50a881417e7b1409debf469169491120bfa"
+  },
+  "driver/include/rknpu_ioctl.h": {
+    "bytes": 8966,
+    "modified_from_upstream": false,
+    "original_r10_sha256": "fa6455fb13141d1a3a3050b659855837237a92fa043a3091a020ca90f8f5017a",
+    "public_change": "none",
+    "sha256": "fa6455fb13141d1a3a3050b659855837237a92fa043a3091a020ca90f8f5017a",
+    "upstream_sha256": "fa6455fb13141d1a3a3050b659855837237a92fa043a3091a020ca90f8f5017a"
+  },
+  "driver/include/rknpu_iommu.h": {
+    "bytes": 1177,
+    "modified_from_upstream": true,
+    "original_r10_sha256": "6c0fc4fce1e53444ae2d6878937538e78df1b6224f813b9f0683468441044879",
+    "public_change": "modification notice only",
+    "sha256": "0b1a250a31477f3ecfcce79d16622710bd0f29b64d4b7551cfbf5f0c6d241549",
+    "upstream_sha256": "d97090ef93d81c2a1d6960688bf031d6bdbdc8bfc1b3a67a6284994cd3f603e6"
+  },
+  "driver/include/rknpu_job.h": {
+    "bytes": 2413,
+    "modified_from_upstream": true,
+    "original_r10_sha256": "3c6d996ae941dc679ad9cb11d9db6bc4269bb7fe4b97a8e698d348cf55f3456a",
+    "public_change": "modification notice only",
+    "sha256": "1691676668ea27e5a11581e58ce9ceb2422723f82adba865ae233f11e7499453",
+    "upstream_sha256": "b2f26fb6d85e6f981c3d2f4b08470a86f254077479b6cd7fa02c060ae1495f09"
+  },
+  "driver/include/rknpu_mem.h": {
+    "bytes": 1384,
+    "modified_from_upstream": false,
+    "original_r10_sha256": "699dfb6abbfc407fd6398cb439e066954eefc1010f6ffe90f8fc3b71e9594ae0",
+    "public_change": "none",
+    "sha256": "699dfb6abbfc407fd6398cb439e066954eefc1010f6ffe90f8fc3b71e9594ae0",
+    "upstream_sha256": "699dfb6abbfc407fd6398cb439e066954eefc1010f6ffe90f8fc3b71e9594ae0"
+  },
+  "driver/include/rknpu_mm.h": {
+    "bytes": 900,
+    "modified_from_upstream": false,
+    "original_r10_sha256": "81b7b374043812128940fac58e81da0dd171c5c75cd76fc0a8ed5313d6cafb97",
+    "public_change": "none",
+    "sha256": "81b7b374043812128940fac58e81da0dd171c5c75cd76fc0a8ed5313d6cafb97",
+    "upstream_sha256": "81b7b374043812128940fac58e81da0dd171c5c75cd76fc0a8ed5313d6cafb97"
+  },
+  "driver/include/rknpu_reset.h": {
+    "bytes": 369,
+    "modified_from_upstream": false,
+    "original_r10_sha256": "f3c211db59c23556db44ef7fc3dabee23616eae7bf71fe9f5870cf9755eba9b3",
+    "public_change": "none",
+    "sha256": "f3c211db59c23556db44ef7fc3dabee23616eae7bf71fe9f5870cf9755eba9b3",
+    "upstream_sha256": "f3c211db59c23556db44ef7fc3dabee23616eae7bf71fe9f5870cf9755eba9b3"
+  },
+  "driver/rknpu_debugger.c": {
+    "bytes": 15319,
+    "modified_from_upstream": false,
+    "original_r10_sha256": "1f88acf9ff83432f30382451c59eb48f6052522f2346ccdd42337fc2d94af375",
+    "public_change": "none",
+    "sha256": "1f88acf9ff83432f30382451c59eb48f6052522f2346ccdd42337fc2d94af375",
+    "upstream_sha256": "1f88acf9ff83432f30382451c59eb48f6052522f2346ccdd42337fc2d94af375"
+  },
+  "driver/rknpu_devfreq.c": {
+    "bytes": 22630,
+    "modified_from_upstream": false,
+    "original_r10_sha256": "945715ab5c610d054414eb9ac98b41465cbbfbfa08f20d63f78872d1833c20ab",
+    "public_change": "none",
+    "sha256": "945715ab5c610d054414eb9ac98b41465cbbfbfa08f20d63f78872d1833c20ab",
+    "upstream_sha256": "945715ab5c610d054414eb9ac98b41465cbbfbfa08f20d63f78872d1833c20ab"
+  },
+  "driver/rknpu_drv.c": {
+    "bytes": 45700,
+    "modified_from_upstream": true,
+    "original_r10_sha256": "5fd8feff03aee7291fdf25bc9d1f8698fc3ead1961a4355df0b7023bade3289e",
+    "public_change": "modification notice only",
+    "sha256": "e46070b74a6ef07cba60fb474ad9054c54bd4112abb3820a626fcf3b66ea7fcd",
+    "upstream_sha256": "2765f98d6ee62e532bfca5ce79267e6c9b5ee0a31a08000e1800c4863743f4bf"
+  },
+  "driver/rknpu_fence.c": {
+    "bytes": 1662,
+    "modified_from_upstream": false,
+    "original_r10_sha256": "75a1dc2a8efc1ca9c8fd01b3b6db1c617369cf72f1b028b8419a12646ade0522",
+    "public_change": "none",
+    "sha256": "75a1dc2a8efc1ca9c8fd01b3b6db1c617369cf72f1b028b8419a12646ade0522",
+    "upstream_sha256": "75a1dc2a8efc1ca9c8fd01b3b6db1c617369cf72f1b028b8419a12646ade0522"
+  },
+  "driver/rknpu_gem.c": {
+    "bytes": 39805,
+    "modified_from_upstream": true,
+    "original_r10_sha256": "4d1d37868319878c21d649cab9a10fdec65bb8c81fdb4692053b91a90bbbf0e2",
+    "public_change": "modification notice only",
+    "sha256": "1e880c8be69e8f8c8b1eedf934a4ea1080ca6a4d28c04ff90feca19aae04a5a9",
+    "upstream_sha256": "f959d3ae8fae3e0e886868871d22f1ee91f0d98996451ddfcb0849ce638de055"
+  },
+  "driver/rknpu_iommu.c": {
+    "bytes": 15837,
+    "modified_from_upstream": false,
+    "original_r10_sha256": "70c8040b179f9b72c3aa431108e41aa0b38d34491fddd686a9610266056ed50b",
+    "public_change": "none",
+    "sha256": "70c8040b179f9b72c3aa431108e41aa0b38d34491fddd686a9610266056ed50b",
+    "upstream_sha256": "70c8040b179f9b72c3aa431108e41aa0b38d34491fddd686a9610266056ed50b"
+  },
+  "driver/rknpu_job.c": {
+    "bytes": 34873,
+    "modified_from_upstream": true,
+    "original_r10_sha256": "12bf8b73fc9b78c19b4ee53662a080a29fea98bf1baae0a98f9dd47aa096c33d",
+    "public_change": "modification notice only",
+    "sha256": "c62dfe28b66b24015fd3ac524dc6dcab359707fbc2a5f721d33f0b9ee0650520",
+    "upstream_sha256": "66ec047312b15b02f38a8f6e679daf24ea948a69c24f7099e8fdec41100cf4bf"
+  },
+  "driver/rknpu_mainline_devfreq.c": {
+    "bytes": 3072,
+    "modified_from_upstream": true,
+    "original_r10_sha256": "1bbf4ce019c2208c2355758c0d68f2001b8239ea9bfc549a671edeb815ad6a99",
+    "public_change": "modification notice only",
+    "sha256": "cc25de60374352ac585ebf8b5b127eea792a81b58868fa2e8f0828a3e9a99136",
+    "upstream_sha256": null
+  },
+  "driver/rknpu_mainline_iommu.c": {
+    "bytes": 2551,
+    "modified_from_upstream": true,
+    "original_r10_sha256": "17e5f37373abbd5b592d9c9d1d19c517688a49dfbb2bac419be592598e0dd510",
+    "public_change": "modification notice only",
+    "sha256": "e7d017f889cc1821ff8a4038fe314cf776ba5788ff03a017caf88a84e16c0372",
+    "upstream_sha256": null
+  },
+  "driver/rknpu_mem.c": {
+    "bytes": 8501,
+    "modified_from_upstream": false,
+    "original_r10_sha256": "4b683b171b285f795d2686794479a04bdb5e99b8af09b3de1634d66ede6a4116",
+    "public_change": "none",
+    "sha256": "4b683b171b285f795d2686794479a04bdb5e99b8af09b3de1634d66ede6a4116",
+    "upstream_sha256": "4b683b171b285f795d2686794479a04bdb5e99b8af09b3de1634d66ede6a4116"
+  },
+  "driver/rknpu_mm.c": {
+    "bytes": 5533,
+    "modified_from_upstream": false,
+    "original_r10_sha256": "00e0f31a4516204c732087c6644357c6256e6986680dde8ce53a5159be214b50",
+    "public_change": "none",
+    "sha256": "00e0f31a4516204c732087c6644357c6256e6986680dde8ce53a5159be214b50",
+    "upstream_sha256": "00e0f31a4516204c732087c6644357c6256e6986680dde8ce53a5159be214b50"
+  },
+  "driver/rknpu_reset.c": {
+    "bytes": 3253,
+    "modified_from_upstream": false,
+    "original_r10_sha256": "1b55c46462a11d5a0c41ac0bb04e7d3fb6778dc0d22d1d5f3a87b53078600baf",
+    "public_change": "none",
+    "sha256": "1b55c46462a11d5a0c41ac0bb04e7d3fb6778dc0d22d1d5f3a87b53078600baf",
+    "upstream_sha256": "1b55c46462a11d5a0c41ac0bb04e7d3fb6778dc0d22d1d5f3a87b53078600baf"
+  },
+  "kernel/r6s-npu.dtsi": {
+    "bytes": 2690,
+    "original_r10_sha256": "438d3fff02a9320e2eec4d38148a18b25c82238a2990dbe311b12d8b5575941e",
+    "public_change": "comments only; device-tree properties unchanged",
+    "sha256": "f05ffdd1548715db2511d782177fee3ad7066b891d95546ee9ff6cb39459922a"
+  }
+}

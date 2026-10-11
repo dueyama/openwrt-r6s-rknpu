@@ -1,0 +1,20 @@
+This is a multi-component source repository, not a blanket relicensing.
+
+* driver/: preserve each original SPDX identifier (GPL-2.0 or GPL-2.0-only).
+  The kernel's legacy GPL-2.0 identifier means GPL version 2 only.
+* kernel/r6s-npu.dtsi: (GPL-2.0+ OR MIT), as marked in the source.
+* Linux IOMMU changes: GPL-2.0-only.
+* New integration scripts, tests, OpenWrt package changes and documentation:
+  GPL-2.0-only, except data/patches carrying another component's license.
+* runtime/patches/glibc/: GNU C Library licensing, generally LGPL-2.1-or-later;
+  preserve file-specific copyright and license notices from the pinned source.
+* runtime/patches/libstdcxx/: GCC/libstdc++ licensing, generally
+  GPL-3.0-or-later WITH GCC-exception-3.1 for eligible runtime files.
+  Build machinery/documentation may carry different upstream terms.
+
+Full license texts are in LICENSES/. Component source notices and exceptions
+take precedence. No RKNN proprietary header, ABI copy from that header,
+SDK library, model, firmware image, or application worker is licensed or
+redistributed by this repository.
+
+See THIRD_PARTY_NOTICES.md and docs/PROVENANCE.md for source correspondence.

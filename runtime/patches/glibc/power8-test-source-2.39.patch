@@ -1,0 +1,10 @@
+diff --git a/string/test-strncasecmp-nonarray.c b/string/test-strncasecmp-nonarray.c
+new file mode 100644
+index 0000000000..d68e58d5ec
+--- /dev/null
++++ b/string/test-strncasecmp-nonarray.c
+@@ -0,0 +1,4 @@
++#define TEST_IDENTIFIER strncasecmp
++#define TEST_NAME "strncasecmp"
++typedef char CHAR;
++#include "test-Xncmp-nonarray.c"

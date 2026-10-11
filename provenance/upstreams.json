@@ -1,0 +1,92 @@
+{
+  "kernel_and_openwrt": [
+    {
+      "commit": "7aba70ab2e8d8ab3cd45abcaa15e1119a00dc42a",
+      "ref": "v6.12.112",
+      "repository": "gregkh/linux"
+    },
+    {
+      "commit": "7d0a66e4bb9081d75c82ec4957c50034cb0ea449",
+      "ref": "v6.18",
+      "repository": "torvalds/linux"
+    },
+    {
+      "commit": "66673aad8f99e450f6ee2587254b1b2d19d45150",
+      "ref": "66673aad8f99e450f6ee2587254b1b2d19d45150",
+      "repository": "openwrt/openwrt"
+    }
+  ],
+  "linux_inputs": [
+    {
+      "file": "drivers/Kconfig",
+      "sha256": "7b1b5b56831c26a302f77f225bcb9a210a679b93aae47ab1f08f5bd7cf066795",
+      "url": "https://raw.githubusercontent.com/gregkh/linux/v6.12.112/drivers/Kconfig"
+    },
+    {
+      "file": "drivers/Makefile",
+      "sha256": "05ad8e0e0448b9247f5f15ba02b6ec138e3185cfeb7e5630d1ab63e9116e219d",
+      "url": "https://raw.githubusercontent.com/gregkh/linux/v6.12.112/drivers/Makefile"
+    },
+    {
+      "file": "arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6s.dts",
+      "sha256": "0029fc24b0da91db4fb8d3c1e7bdb71be465487960abbd26f2787e2a3429e053",
+      "url": "https://raw.githubusercontent.com/gregkh/linux/v6.12.112/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6s.dts"
+    },
+    {
+      "file": "GPL-2.0",
+      "sha256": "f6b78c087c3ebdf0f3c13415070dd480a3f35d8fc76f3d02180a407c1c812f79",
+      "url": "https://raw.githubusercontent.com/gregkh/linux/v6.12.112/LICENSES/preferred/GPL-2.0"
+    },
+    {
+      "file": "MIT",
+      "sha256": "323c587d0ccf10e376f8bf9a7f31fb4ca6078105194b42e0b1e0ee2bc9bde71f",
+      "url": "https://raw.githubusercontent.com/gregkh/linux/v6.12.112/LICENSES/preferred/MIT"
+    },
+    {
+      "sha256": "9d7e9b6e536764401f1fb0e55731d1b88d0d03046585d25300defa92e2794584",
+      "url": "https://raw.githubusercontent.com/gregkh/linux/7aba70ab2e8d8ab3cd45abcaa15e1119a00dc42a/drivers/iommu/rockchip-iommu.c"
+    }
+  ],
+  "openwrt_board": {
+    "inputs": [
+      {
+        "sha256": "2c4944cae5463a4a0364fcc0227af6416da3c5ed01eca8e0899e6e58c91d7a5c",
+        "url": "https://raw.githubusercontent.com/openwrt/openwrt/66673aad8f99e450f6ee2587254b1b2d19d45150/target/linux/rockchip/patches-6.12/400-1-arm64-dts-rockchip-Add-common-definitions-for-NanoPi.patch"
+      },
+      {
+        "sha256": "169c72f6712ec87cc1cdfce264a8b66d88f5c775f44100893eccc4abc1185bef",
+        "url": "https://raw.githubusercontent.com/openwrt/openwrt/66673aad8f99e450f6ee2587254b1b2d19d45150/target/linux/rockchip/patches-6.12/400-2-arm64-dts-rockchip-Fix-regulators-gmac-and-naming-on.patch"
+      },
+      {
+        "sha256": "5f936ab152cf17e5acfa9ee1e29176ded1a34d8c32a7a05f507d967cb4a5b166",
+        "url": "https://raw.githubusercontent.com/openwrt/openwrt/66673aad8f99e450f6ee2587254b1b2d19d45150/target/linux/rockchip/patches-6.12/400-3-arm64-dts-rockchip-Improve-LEDs-on-NanoPi-R6C-R6S.patch"
+      }
+    ],
+    "matches_preintegration_board": true,
+    "result_sha256": "c863c09b87bbc4da8b5fca087a003bbee0d22d16e223220a35de126bfee0dff9"
+  },
+  "related_work": [
+    {
+      "repository": "https://github.com/antonioacg/rknpu-rk3588",
+      "reviewed_commit": "deaea9e0b935992391a9c7ddfff7725973d353c2",
+      "role": "related work; historical use commit not established"
+    },
+    {
+      "repository": "https://github.com/w568w/rknpu-module",
+      "reviewed_commit": "a8792fe6b633f90cf2c6808267cac327537ab4cf",
+      "role": "related work; historical use commit not established"
+    }
+  ],
+  "rockchip_driver": {
+    "archive": "rknpu-driver/rknpu_driver_0.9.8_20241009.tar.bz2",
+    "commit": "f7390530443bf84f0394255a449d7cbe81e69d1c",
+    "relationship": "direct source",
+    "repository": "https://github.com/airockchip/rknn-llm",
+    "sha256": "188306a3eba7ca48c186fe2a39acf232dec8536484581e54e9b96c3f65677eba"
+  },
+  "rockchip_dts": {
+    "commit": "77168c8d5ab82399f65a80e9f807b50ba37cf483",
+    "relationship": "register/clock/OPP reference",
+    "repository": "https://github.com/rockchip-linux/kernel"
+  }
+}

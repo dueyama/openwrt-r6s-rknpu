@@ -1,0 +1,22 @@
+--- a/libstdc++-v3/include/Makefile.am
++++ b/libstdc++-v3/include/Makefile.am
+@@ -1041,7 +1041,7 @@ endif
+ 
+ host_srcdir = ${glibcxx_srcdir}/$(OS_INC_SRCDIR)
+ host_builddir = ./${host_alias}/bits
+-host_installdir = ${gxx_include_dir}/${host_alias}$(MULTISUBDIR)/bits
++host_installdir = $(if $(shell $(CC) -print-multiarch),/usr/include/$(shell $(filter-out -m%,$(CC)) -print-multiarch)/c++/$(notdir ${gxx_include_dir})$(MULTISUBDIR)/bits,${gxx_include_dir}/${default_host_alias}$(MULTISUBDIR)/bits)
+ host_headers = \
+ 	${host_srcdir}/ctype_base.h \
+ 	${host_srcdir}/ctype_inline.h \
+--- a/libstdc++-v3/include/Makefile.in
++++ b/libstdc++-v3/include/Makefile.in
+@@ -1372,7 +1372,7 @@ parallel_headers = \
+ @GLIBCXX_C_HEADERS_COMPATIBILITY_TRUE@c_compatibility_headers_extra = ${c_compatibility_headers}
+ host_srcdir = ${glibcxx_srcdir}/$(OS_INC_SRCDIR)
+ host_builddir = ./${host_alias}/bits
+-host_installdir = ${gxx_include_dir}/${host_alias}$(MULTISUBDIR)/bits
++host_installdir = $(if $(shell $(CC) -print-multiarch),/usr/include/$(shell $(filter-out -m%,$(CC)) -print-multiarch)/c++/$(notdir ${gxx_include_dir})$(MULTISUBDIR)/bits,${gxx_include_dir}/${default_host_alias}$(MULTISUBDIR)/bits)
+ host_headers = \
+ 	${host_srcdir}/ctype_base.h \
+ 	${host_srcdir}/ctype_inline.h \

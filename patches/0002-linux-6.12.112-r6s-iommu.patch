@@ -1,0 +1,90 @@
+--- a/drivers/iommu/rockchip-iommu.c
++++ b/drivers/iommu/rockchip-iommu.c
+@@ -23,6 +23,7 @@
+ #include <linux/of_platform.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
++#include <linux/pm_domain.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ 
+@@ -1169,7 +1170,24 @@
+ 	return 0;
+ }
+ 
++/* Request translated DMA only for the private three-core R6S NPU provider.
++ * All existing providers/devices retain the global default (including passthrough).
++ * The NPU driver still refuses identity domains; no userspace type rewrite.
++ */
++static int rk_iommu_def_domain_type(struct device *dev)
++{
++ struct rk_iommudata *data = dev_iommu_priv_get(dev);
++
++ if (data && data->iommu &&
++     of_device_is_compatible(data->iommu->dev->of_node,
++                             "r6s,rk3588-iommu-3core") &&
++     of_device_is_compatible(dev->of_node, "rockchip,rk3588-rknpu"))
++  return IOMMU_DOMAIN_DMA;
++ return 0;
++}
++
+ static const struct iommu_ops rk_iommu_ops = {
++	.def_domain_type = rk_iommu_def_domain_type,
+ 	.identity_domain = &rk_identity_domain,
+ 	.domain_alloc_paging = rk_iommu_domain_alloc_paging,
+ 	.probe_device = rk_iommu_probe_device,
+@@ -1199,6 +1217,12 @@
+ 	if (!iommu)
+ 		return -ENOMEM;
+ 
++	if (of_device_is_compatible(dev->of_node, "r6s,rk3588-iommu-3core")) {
++		struct dev_pm_domain_list *domains;
++		err = devm_pm_domain_attach_list(dev, NULL, &domains);
++		if (err != 3) return err < 0 ? err : -EINVAL;
++	}
++
+ 	iommu->domain = &rk_identity_domain;
+ 
+ 	platform_set_drvdata(pdev, iommu);
+@@ -1226,8 +1250,11 @@
+ 		if (!res)
+ 			continue;
+ 		iommu->bases[i] = devm_ioremap_resource(&pdev->dev, res);
+-		if (IS_ERR(iommu->bases[i]))
++		if (IS_ERR(iommu->bases[i])) {
++			if (of_device_is_compatible(dev->of_node, "r6s,rk3588-iommu-3core"))
++				return PTR_ERR(iommu->bases[i]);
+ 			continue;
++		}
+ 		iommu->num_mmu++;
+ 	}
+ 	if (iommu->num_mmu == 0)
+@@ -1240,6 +1267,11 @@
+ 	iommu->reset_disabled = device_property_read_bool(dev,
+ 					"rockchip,disable-mmu-reset");
+ 
++	if (of_device_is_compatible(dev->of_node, "r6s,rk3588-iommu-3core")) {
++		err = devm_clk_bulk_get_all(dev, &iommu->clocks);
++		if (err != 6) return err < 0 ? err : -EINVAL;
++		iommu->num_clocks = err;
++	} else {
+ 	iommu->num_clocks = ARRAY_SIZE(rk_iommu_clocks);
+ 	iommu->clocks = devm_kcalloc(iommu->dev, iommu->num_clocks,
+ 				     sizeof(*iommu->clocks), GFP_KERNEL);
+@@ -1260,6 +1292,8 @@
+ 	else if (err)
+ 		return err;
+ 
++	}
++
+ 	err = clk_bulk_prepare(iommu->num_clocks, iommu->clocks);
+ 	if (err)
+ 		return err;
+@@ -1372,6 +1406,7 @@
+ 	{	.compatible = "rockchip,rk3568-iommu",
+ 		.data = &iommu_data_ops_v2,
+ 	},
++	{ .compatible = "r6s,rk3588-iommu-3core", .data = &iommu_data_ops_v2 },
+ 	{ /* sentinel */ }
+ };
+ 

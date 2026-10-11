@@ -1,0 +1,8 @@
+glibc-18374-upstream-01.patch
+glibc-8674-upstream.patch
+glibc-fix-e51efbc44f228425a405b805637d80ef81dc2345.patch
+fopen-test-2.39.patch
+power8-production-2.39.patch
+power8-test-source-2.39.patch
+loader-origin-production-2.39.patch
+loader-origin-tests-2.39.patch
