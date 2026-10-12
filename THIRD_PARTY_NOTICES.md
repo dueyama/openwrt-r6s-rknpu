@@ -27,6 +27,18 @@ Ubuntu-selected patches are projected to their libstdc++ hunks only, with
 original-patch hashes retained. The source package versions and exact series
 are recorded. Original GNU patch author headers are preserved.
 
+**Offline sigmoid analysis:** The table-generation algorithm in
+`analysis/fp16-sigmoid/rk3588_sigmoid_reference.py` references Greg Ordinary and
+the rocket-userspace contributors at commit
+`1401c46e75e45adee66b08b97a62e633306de016`. The pinned C source declares
+`GPL-3.0-or-later` and `Copyright (C) 2026 The rocket-userspace authors`.
+The Python adaptation credits that source and retains GPL-3.0-or-later, with
+the unmodified GPL version 3 text in `analysis/fp16-sigmoid/COPYING`.
+This is a separate CPU analysis module, not a kernel-linked component or a
+verified hardware emulator. No upstream driver/device library is vendored.
+Related rockchip-npu-notes documents are linked as references, not copied.
+Exact pins, hashes and publication edits are in that directory's PROVENANCE.json.
+
 **Related projects:** antonioacg/rknpu-rk3588 and w568w/rknpu-module are credited
 as related work in `docs/PROVENANCE.md`. No license from those repositories is
 being used to license this tree, and a direct copied-code relationship is not

@@ -26,6 +26,13 @@ unverified. Cold boot, automatic service activation and long-duration stability
 are not validated. See [validation and limits](docs/VALIDATION.md) for the scope
 of the available evidence.
 
+A [CPU investigation of a public RK3588 sigmoid LUT](analysis/fp16-sigmoid/FP16_SIGMOID_LUT.md)
+reproduced its 1,026 table entries exactly, but all three interpolation hypotheses
+matched **0 of 257** saved NN scores. The maximum difference decreased while the
+mean difference increased; actual RKNN LUT settings remain unidentified. The
+accompanying offline reference reproduces the public table, not the private NN
+experiment, and adds no router dependency.
+
 ## Project at a glance
 
 | Question | Answer |
@@ -54,6 +61,7 @@ repository and do not replace the component source notices or validation record.
 | `tests/` | Production task-range tests and error-path fault injection |
 | `verification/` | Isolated Linux container and minimal OpenWrt build configuration |
 | `provenance/` | Upstream pins, hashes, and per-file R10 source correspondence |
+| `analysis/fp16-sigmoid/` | Separately licensed CPU reference, numerical report and public-only tests |
 
 Start with [build instructions](docs/BUILD.md) and [port design](docs/PORTING.md).
 The host-only check requires Python 3 and a C compiler with AddressSanitizer and
@@ -93,4 +101,6 @@ This repository contains multiple licenses. Driver SPDX identifiers and upstream
 copyright notices are retained; the DTS fragment is dual licensed. GNU library
 patches retain their component licenses and applicable GCC runtime exception.
 New integration scripts, tests and documentation are GPL-2.0-only unless marked
-otherwise. Read [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+otherwise. The independent FP16 analysis module and its tests are GPL-3.0-or-later
+and are not linked into the kernel driver. Read [LICENSE](LICENSE) and
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

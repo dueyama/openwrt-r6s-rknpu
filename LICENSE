@@ -6,6 +6,12 @@ This is a multi-component source repository, not a blanket relicensing.
 * Linux IOMMU changes: GPL-2.0-only.
 * New integration scripts, tests, OpenWrt package changes and documentation:
   GPL-2.0-only, except data/patches carrying another component's license.
+* analysis/fp16-sigmoid/rk3588_sigmoid_reference.py and test_reference.py:
+  GPL-3.0-or-later. Independent offline CPU analysis, not linked into the
+  kernel driver or included in OpenWrt/runtime packages. Its COPYING is the
+  unmodified GPL version 3 text; source SPDX notices grant the or-later option.
+  Analysis documentation and provenance are GPL-2.0-only. NumPy is external
+  and not bundled; its own license notices apply.
 * runtime/patches/glibc/: GNU C Library licensing, generally LGPL-2.1-or-later;
   preserve file-specific copyright and license notices from the pinned source.
 * runtime/patches/libstdcxx/: GCC/libstdc++ licensing, generally

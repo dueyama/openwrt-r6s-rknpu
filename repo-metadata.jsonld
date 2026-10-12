@@ -7,13 +7,14 @@
   "keywords": [
     "NanoPi R6S", "FriendlyElec", "Rockchip", "RK3588S", "RKNPU",
     "NPU", "OpenWrt", "Linux 6.12", "AArch64", "device tree", "IOMMU",
-    "router", "edge inference", "Kitsune", "KitNET", "network anomaly detection"
+    "router", "edge inference", "Kitsune", "KitNET", "network anomaly detection",
+    "FP16", "sigmoid", "lookup table", "numerical reproducibility"
   ],
   "inLanguage": "en",
   "programmingLanguage": ["C", "Python"],
   "runtimePlatform": "NanoPi R6S / RK3588S, AArch64, OpenWrt with Linux 6.12.112",
   "creativeWorkStatus": "Experimental",
-  "dateModified": "2026-10-11",
+  "dateModified": "2026-10-12",
   "license": {
     "@type": "CreativeWork",
     "name": "Component-specific license inventory; original source notices take precedence",
@@ -27,6 +28,8 @@
     "description": "Research motivation for the port; application implementation and paper-result reproduction are outside this repository's scope."
   },
   "hasPart": [
+    {"@type": "CreativeWork", "name": "FP16 sigmoid LUT numerical investigation", "url": "analysis/fp16-sigmoid/FP16_SIGMOID_LUT.md"},
+    {"@type": "SoftwareSourceCode", "name": "Independent CPU sigmoid reference", "url": "analysis/fp16-sigmoid/README.md", "license": {"@type": "CreativeWork", "name": "GPL-3.0-or-later for the analysis module and tests", "url": "analysis/fp16-sigmoid/COPYING"}},
     {"@type": "CreativeWork", "name": "Project overview", "url": "README.md"},
     {"@type": "CreativeWork", "name": "Build instructions", "url": "docs/BUILD.md"},
     {"@type": "CreativeWork", "name": "Validation evidence and limits", "url": "docs/VALIDATION.md"},

@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "scope": "Publication CPU verification using public inputs only; private 257-record experiment not rerun or independently reproduced",
+  "environment": {
+    "python": "3.13.12",
+    "numpy": "2.5.1",
+    "system": "Darwin",
+    "machine": "arm64"
+  },
+  "python_command": "python3 -B test_reference.py -v",
+  "python_test_methods": 9,
+  "python_tests_passed": true,
+  "finite_binary16_patterns": 63488,
+  "c_table_excerpt": {
+    "source": "rocket-userspace at 1401c46e75e45adee66b08b97a62e633306de016, src/rocket_activation.c build_lut_unit",
+    "wrapper": "Sigmoid-only act_eval and explicit little-endian byte output; CPU only",
+    "compiler_options": [
+      "-std=c11",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Werror"
+    ],
+    "output_bytes": 2052,
+    "sha256": "47363f344838cb18c0f36f4d320e6af4d6ca0eb7bb8476141be4b0700d36d422",
+    "matches_python_table": true,
+    "third_party_device_library_executed": false,
+    "excerpt_vendored_in_repository": false
+  },
+  "pinned_source_files_hashes_and_sizes_verified": 7,
+  "GPL_text_hash_verified": true,
+  "received_module_full_AST_unchanged": true,
+  "private_experiment_metrics": "Aggregated source report; no private model, inputs, weights or per-record traces obtained for publication",
+  "hardware_or_SDK_test": false,
+  "router_or_build_or_observation_modified": false,
+  "provenance_sha256": "7194b07fdde8e775e4b86f353118f0d81457063d6159d6d632fed24daad3774b"
+}

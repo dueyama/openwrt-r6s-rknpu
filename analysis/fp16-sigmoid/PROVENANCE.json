@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "purpose": "Public CPU-only numerical investigation; no private NN inputs or model supplied",
+  "source_pins": [
+    {
+      "repository": "rocket-userspace",
+      "commit": "1401c46e75e45adee66b08b97a62e633306de016",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/gregordinary/rocket-userspace/1401c46e75e45adee66b08b97a62e633306de016/src/rocket_activation.c",
+          "bytes": 55237,
+          "sha256": "7c10e98e8c2011d237b47da49ddb69216eb661ae4b3e0026daec152927770266"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/gregordinary/rocket-userspace/1401c46e75e45adee66b08b97a62e633306de016/src/npu_regcmd.c",
+          "bytes": 172470,
+          "sha256": "fd6fa51f1039e8014f07610e6bd4c6828f245460f3246f9b34803e99872f316f"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/gregordinary/rocket-userspace/1401c46e75e45adee66b08b97a62e633306de016/tests/activation_lut_rocket.c",
+          "bytes": 8872,
+          "sha256": "a03fb9191ad831df4ccbc105859d454cbf1125e561399608841a7df396b3306c"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/gregordinary/rocket-userspace/1401c46e75e45adee66b08b97a62e633306de016/include/npu_activation.h",
+          "bytes": 5884,
+          "sha256": "ff9fbbaada0fcdf9f9102d72e6fe47d92d5982534a8f0d22c54ce5bc9b374f94"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/gregordinary/rocket-userspace/1401c46e75e45adee66b08b97a62e633306de016/README.md",
+          "bytes": 26808,
+          "sha256": "1be348beb78427f3e1ad55c28aba955ef1d6a303c009b057633457b9e4e6e31f"
+        }
+      ]
+    },
+    {
+      "repository": "rockchip-npu-notes",
+      "commit": "b4efde2a0a083bbed2f074ffdf3343bcd8a92cb3",
+      "files": [
+        {
+          "url": "https://raw.githubusercontent.com/gregordinary/rockchip-npu-notes/b4efde2a0a083bbed2f074ffdf3343bcd8a92cb3/encodings/dpu-lut-activation.md",
+          "bytes": 29826,
+          "sha256": "46abaebb13f5e59cb99ccb28ecdf9429d0f031e00174a5da836551c466aa3f17"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/gregordinary/rockchip-npu-notes/b4efde2a0a083bbed2f074ffdf3343bcd8a92cb3/README.md",
+          "bytes": 19434,
+          "sha256": "1086ee118ba199b1426c9a19a1a0b75a17b82aebe5cdd3575886bd528817c94b"
+        }
+      ]
+    }
+  ],
+  "reference_source_sha256": "358cf15c26d1a73e50e2e67d607a5e8d7011ba656df0c2943de608dcdb3a5f80",
+  "public_copy_changes": "SPDX/attribution header and module documentation only; computational AST unchanged",
+  "public_reference_sha256": "1f624243ebc9bc0c2d3b020d362dfc1884f62c519dd95a23b63487c13123ae34",
+  "table_little_endian_le_then_lo_sha256": "47363f344838cb18c0f36f4d320e6af4d6ca0eb7bb8476141be4b0700d36d422",
+  "reproduction_scope": "Public table/reference only, not full private 257-record experiment",
+  "exact_score_agreement": "unmet, 0 of 257 for each public-LUT hypothesis",
+  "publication_contains_private_model_or_records": false,
+  "received_public_reference_sha256": "5622dec7bb36ea0f700682005cff6f7353089c7050f023f1292d091936dfe9b3",
+  "publication_changes": {
+    "report": "Replace unsupported chronological label with first 160 / remaining 97 descriptive partitions. Aggregate numbers unchanged.",
+    "module": "Add the pinned source copyright credit as a comment; complete AST matches received public module.",
+    "readme": "Document installed analysis directory, separate license, dependencies and CPU tests."
+  },
+  "licenses": {
+    "rk3588_sigmoid_reference.py": "GPL-3.0-or-later",
+    "test_reference.py": "GPL-3.0-or-later",
+    "documentation_and_provenance": "GPL-2.0-only",
+    "COPYING": {
+      "url": "https://raw.githubusercontent.com/gregordinary/rocket-userspace/1401c46e75e45adee66b08b97a62e633306de016/LICENSE",
+      "bytes": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "description": "Unmodified GNU GPL version 3 license text; or-later grant is in source SPDX notice."
+    },
+    "numpy": "External dependency, not bundled; BSD-3-Clause, see installed NumPy notices"
+  },
+  "received_public_files": {
+    "FP16_SIGMOID_LUT.md": {
+      "bytes": 9436,
+      "sha256": "7e61cd6bb77535bcf6cb06812c695ef92614ad33dfd1850dd9c48180d4f21918"
+    },
+    "PROVENANCE.json": {
+      "bytes": 3023,
+      "sha256": "6788a89a372485b3cfb94f5ef8a294d4aefe1cb4723b62fbbaf3c1f8b018004d"
+    },
+    "README.md": {
+      "bytes": 1445,
+      "sha256": "ec6df687dcca597a65a385fd84b14d23138f45b43c74c45f2087a9996f34f8ff"
+    },
+    "rk3588_sigmoid_reference.py": {
+      "bytes": 5381,
+      "sha256": "5622dec7bb36ea0f700682005cff6f7353089c7050f023f1292d091936dfe9b3"
+    }
+  },
+  "publication_file_sha256": {
+    "FP16_SIGMOID_LUT.md": "a559e1094f409849840229d8a1bba339bd73ff97e9c19cbb9fb367eaa11f208a",
+    "README.md": "1d0f47ca0912df925c920abf36db7c27654dd16b006d8c4c109ff7cb84b15e9e",
+    "rk3588_sigmoid_reference.py": "1f624243ebc9bc0c2d3b020d362dfc1884f62c519dd95a23b63487c13123ae34",
+    "test_reference.py": "e9af97c7d84d6547b53e4a9b13ded43d67f53909a853efdcb4c62b7a6ed90b99",
+    "COPYING": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+  }
+}

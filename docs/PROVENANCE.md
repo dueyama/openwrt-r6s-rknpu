@@ -44,6 +44,24 @@ sources are identified in the direct-source table above.
 Their contributors retain their copyrights; linking a reference is not a
 substitute for its license if code is incorporated later.
 
+## Independent offline FP16 analysis
+
+The [sigmoid investigation](../analysis/fp16-sigmoid/FP16_SIGMOID_LUT.md) includes
+a Python table-generation adaptation referencing Greg Ordinary and contributors'
+`rocket-userspace/src/rocket_activation.c` at
+`1401c46e75e45adee66b08b97a62e633306de016`. Its GPL-3.0-or-later notice and source
+copyright credit are retained in the analysis component. The unmodified upstream
+GPL version 3 text is provided as `analysis/fp16-sigmoid/COPYING`.
+
+The accompanying public CPU tests are also GPL-3.0-or-later. This component is
+separate from the kernel driver and its builds; no rocket device/driver library
+is included. The report links reverse-engineering notes at
+`b4efde2a0a083bbed2f074ffdf3343bcd8a92cb3` without vendoring them.
+[Analysis provenance](../analysis/fp16-sigmoid/PROVENANCE.json) records exact URLs,
+hashes, license boundaries and changes to the received public copy. The full
+private 257-record comparison is an aggregated reported result; only the public
+table and CPU hypotheses are independently reproducible from this repository.
+
 ## Excluded proprietary and application inputs
 
 RKNN Toolkit2 2.3.2 at `59a913d172e7f5ff03c9076e2ec7b1b1288ffd08` is a

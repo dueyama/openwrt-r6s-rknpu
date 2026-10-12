@@ -4,6 +4,21 @@ This document distinguishes reported R10 hardware results from reproducible
 checks supplied with this repository. Neither establishes universal hardware
 compatibility or application accuracy.
 
+## FP16 sigmoid investigation (2026-10-12)
+
+The [public-table CPU investigation](../analysis/fp16-sigmoid/FP16_SIGMOID_LUT.md)
+reproduced 1,026 u16 entries (2,052 bytes) exactly. Three fixed interpolation
+hypotheses each matched 0/257 saved final NN scores. Maximum score difference
+fell about 70%, while mean absolute difference increased 83–93%. Every full-NN
+row required an unverified outside-domain saturation assumption; actual RKNN
+LUT/conversion settings and fused precision remain unidentified.
+
+The earlier 113/257 failures against a project-defined FP32 development tolerance
+remain failures. This is not an IEEE compliance test or an intrusion-detection
+accuracy evaluation. Public code reproduces the table/hypothesis calculation;
+private models, inputs and per-record traces are not distributed. No new NPU/SDK
+execution or router change was performed for this CPU investigation.
+
 ## Reset and DMA32 corrections
 
 The follow-up review of `289960f` accepted both findings. Revision 12 has 70

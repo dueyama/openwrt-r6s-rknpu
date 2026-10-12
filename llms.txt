@@ -15,6 +15,8 @@ not a reproduced Kitsune evaluation or a complete intrusion-detection product.
 
 ## Overview and evidence
 
+- [FP16 sigmoid LUT investigation](analysis/fp16-sigmoid/FP16_SIGMOID_LUT.md): Public table reproduced exactly; three CPU hypotheses each match 0/257 private saved NN scores, with explicit domain and evidence limits.
+- [Offline CPU reference](analysis/fp16-sigmoid/README.md): Reproduce the public table and run CPU-only checks; GPL-3.0-or-later analysis module, no router dependency or private NN data.
 - [Reset and DMA32 review](docs/RESET_DMA32_REVIEW.md): Two accepted follow-up findings, serialized device recovery, reset failure policy, physical DMA32 GFP tests and hardware limits.
 - [Error-path review](docs/ERROR_PATH_REVIEW.md): Four accepted findings, fixes, regression tests and remaining kernel/device limits.
 - [README](README.md): Motivation, scope, hardware and software baseline.
